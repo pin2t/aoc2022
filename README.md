@@ -6,6 +6,4 @@ This repository stores small programs which solves Advent of Code 2022 puzzles. 
 `go run 1.go < inputs/1.txt` 
 
 ## Running Swift solutions
-First compile dependency
-
 `swift 1.swift < inputs/1.txt`
