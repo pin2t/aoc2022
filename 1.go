@@ -19,6 +19,6 @@ func main() {
 			calories[len(calories)-1] = calories[len(calories)-1] + int(c)
 		}
 	}
-	sort.Ints(calories)
-	fmt.Println(calories[len(calories)-1], calories[len(calories)-1]+calories[len(calories)-2]+calories[len(calories)-3])
+	sort.Sort(sort.Reverse(sort.IntSlice(calories)))
+	fmt.Println(calories[0], calories[0]+calories[1]+calories[2])
 }
