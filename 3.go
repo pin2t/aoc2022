@@ -20,25 +20,25 @@ func priority(c rune) int {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	p1, p2 := 0, 0
-	items := make([]string, 0)
+	rucksacks := make([]string, 0)
 	for scanner.Scan() {
-		item := scanner.Text()
-		first, second := item[:len(item)/2], item[len(item)/2:]
+		rucksack := scanner.Text()
+		first, second := rucksack[:len(rucksack)/2], rucksack[len(rucksack)/2:]
 		for _, c := range first {
-			if strings.Contains(second, string(c)) {
+			if strings.ContainsRune(second, c) {
 				p1 += priority(c)
 				break
 			}
 		}
-		items = append(items, item)
-		if len(items) == 3 {
-			for _, r := range items[0] {
-				if strings.Contains(items[1], string(r)) && strings.Contains(items[2], string(r)) {
+		rucksacks = append(rucksacks, rucksack)
+		if len(rucksacks) == 3 {
+			for _, r := range rucksacks[0] {
+				if strings.ContainsRune(rucksacks[1], r) && strings.ContainsRune(rucksacks[2], r) {
 					p2 += priority(r)
 					break
 				}
 			}
-			items = make([]string, 0)
+			rucksacks = make([]string, 0)
 		}
 	}
 	fmt.Println(p1, p2)
