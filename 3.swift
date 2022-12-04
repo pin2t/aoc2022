@@ -1,6 +1,6 @@
 func priority(_ item: Character) -> Int {
     let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    return chars.firstIndex(of: item)?.utf16Offset(in: chars) ?? 0 + 1 
+    return chars.firstIndex(of: item)!.utf16Offset(in: chars) + 1 
 }
 var rucksacks: [String] = []
 var p1 = 0, p2 = 0
