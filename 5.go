@@ -35,11 +35,11 @@ func main() {
 	stacks := []stack{stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}}
 	stacks2 := []stack{stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}}
 	for i := len(lines) - 2; i >= 0; i-- {
-		for j := 1; j < len(lines[i]); j += 4 {
-			if lines[i][j] != ' ' {
-				n := (j - 1) / 4
-				stacks[n] = append(stacks[n], string(lines[i][j]))
-				stacks2[n] = append(stacks2[n], string(lines[i][j]))
+		for j, n := 1, 0; j < len(lines[i]); j, n = j+4, n+1 {
+			crate := string(lines[i][j])
+			if crate != " " {
+				stacks[n] = append(stacks[n], crate)
+				stacks2[n] = append(stacks2[n], crate)
 			}
 		}
 	}
