@@ -25,27 +25,23 @@ func tops(ss []stack) string {
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	stacks := []stack{
-		stack{"L", "N", "W", "T", "D"},
-		stack{"C", "P", "H"},
-		stack{"W", "P", "H", "N", "D", "G", "M", "J"},
-		stack{"C", "W", "S", "N", "T", "Q", "L"},
-		stack{"P", "H", "C", "N"},
-		stack{"T", "H", "N", "D", "M", "W", "Q", "B"},
-		stack{"M", "B", "R", "J", "G", "S", "L"},
-		stack{"Z", "N", "W", "G", "V", "B", "R", "T"},
-		stack{"W", "G", "D", "N", "P", "L"},
+	lines := []string{}
+	for scanner.Scan() {
+		if scanner.Text() == "" {
+			break
+		}
+		lines = append(lines, scanner.Text())
 	}
-	stacks2 := []stack{
-		stack{"L", "N", "W", "T", "D"},
-		stack{"C", "P", "H"},
-		stack{"W", "P", "H", "N", "D", "G", "M", "J"},
-		stack{"C", "W", "S", "N", "T", "Q", "L"},
-		stack{"P", "H", "C", "N"},
-		stack{"T", "H", "N", "D", "M", "W", "Q", "B"},
-		stack{"M", "B", "R", "J", "G", "S", "L"},
-		stack{"Z", "N", "W", "G", "V", "B", "R", "T"},
-		stack{"W", "G", "D", "N", "P", "L"},
+	stacks := []stack{stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}}
+	stacks2 := []stack{stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}, stack{}}
+	for i := len(lines) - 2; i >= 0; i-- {
+		for j := 1; j < len(lines[i]); j += 4 {
+			if lines[i][j] != ' ' {
+				n := (j - 1) / 4
+				stacks[n] = append(stacks[n], string(lines[i][j]))
+				stacks2[n] = append(stacks2[n], string(lines[i][j]))
+			}
+		}
 	}
 	for scanner.Scan() {
 		var count, from, to int
