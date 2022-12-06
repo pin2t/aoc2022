@@ -14,7 +14,7 @@ class Stack {
     var crates: [Character] = []
 
     func move(to: Stack, n: Int) {
-        
+        return Stack
     }
 }
 
