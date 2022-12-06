@@ -1,25 +1,27 @@
 extension String {
-    func unique(_ r: Range<Int>) -> Bool {
+    subscript(_ r: Range<Int>) -> Substring {
         let start = self.index(self.startIndex, offsetBy: r.lowerBound)
         let end = self.index(self.startIndex, offsetBy: r.upperBound)
-        var chars: Set<Character> = [], sub = self[start..<end]
-        sub.forEach { chars.insert($0) }
-        return chars.count == sub.count
+        return self[start..<end]
     }
 }
 
+extension Substring {
+    var unique: Bool {
+        var chars: Set<Character> = []
+        self.forEach { chars.insert($0) }
+        return chars.count == self.count
+    }
+}
+
+func firstUnique(_ s: String, _ n: Int) -> Int {
+    for i in n-1..<s.count { 
+        if s[i-n+1..<i+1].unique { 
+            return i
+        }
+    }
+    return 0
+}
+
 let chars = readLine()!
-var n1 = 0, n2 = 0
-for i in 3..<chars.count { 
-    if n1 == 0 && chars.unique(i-3..<i+1) { 
-        n1 = i + 1
-        break 
-    }
-}
-for i in 13..<chars.count {
-    if n2 == 0 && chars.unique(i-13..<i+1) { 
-        n2 = i + 1 
-        break 
-    }
-}
-print(n1, n2)
+print(firstUnique(chars, 4) + 1, firstUnique(chars, 14) + 1)
