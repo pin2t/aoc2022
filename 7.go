@@ -21,38 +21,19 @@ type dir struct {
 func (d *dir) size() int {
 	result := 0
 	for _, file := range d.files {
-		result = result + file.size
+		result += file.size
 	}
 	for _, dir := range d.dirs {
-		result = result + dir.size()
+		result += dir.size()
 	}
 	return result
 }
 
-func (d *dir) total() int {
-	result := 0
-	if d.size() <= 100000 {
-		result = result + d.size()
-	}
+func (d *dir) forEach(f func(d *dir)) {
 	for _, dir := range d.dirs {
-		result = result + dir.total()
+		dir.forEach(f)
 	}
-	return result
-}
-
-func (d *dir) smallest(threshold int) int {
-	result := 10000000000
-	for _, dir := range d.dirs {
-		size := dir.smallest(threshold)
-		if size >= threshold && size < result {
-			result = size
-		}
-	}
-	size := d.size()
-	if size >= threshold && size < result {
-		result = size
-	}
-	return result
+	f(d)
 }
 
 func main() {
@@ -84,5 +65,15 @@ func main() {
 			current.files = append(current.files, file)
 		}
 	}
-	fmt.Println((&root).total(), (&root).smallest(30000000-(70000000-(&root).size())))
+	total, smallest, rootSize := 0, 10000000000, root.size()
+	root.forEach(func(d *dir) {
+		size := d.size()
+		if size <= 100000 {
+			total += size
+		}
+		if size >= 30000000-(70000000-rootSize) && size < smallest {
+			smallest = size
+		}
+	})
+	fmt.Println(total, smallest)
 }
