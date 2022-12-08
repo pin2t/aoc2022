@@ -12,7 +12,7 @@ func main() {
 	for scanner.Scan() {
 		grid = append(grid, scanner.Text())
 	}
-	n := len(grid[0])*2 + len(grid)*2 - 4 // tress on edges
+	n := len(grid[0])*2 + len(grid)*2 - 4 // trees on edges
 	highest := 0
 	for i := 1; i < len(grid[0])-1; i++ {
 		for j := 1; j < len(grid)-1; j++ {
