@@ -8,6 +8,12 @@ import (
 	"github.com/albertorestifo/dijkstra"
 )
 
+func replace(s string, i int, c rune) string {
+	rr := []rune(s)
+	rr[i] = c
+	return string(rr)
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	grid := []string{}
@@ -19,17 +25,14 @@ func main() {
 	var starts []string
 	for y, row := range grid {
 		for x, height := range row {
-			if height == 'S' {
+			switch height {
+			case 'S':
 				start = fmt.Sprintf("%d,%d", x, y)
-				rr := []rune(grid[y])
-				rr[x] = 'a'
-				grid[y] = string(rr)
-			} else if height == 'E' {
+				grid[y] = replace(grid[y], x, 'a')
+			case 'E':
 				end = fmt.Sprintf("%d,%d", x, y)
-				rr := []rune(grid[y])
-				rr[x] = 'a'
-				grid[y] = string(rr)
-			} else if height == 'a' {
+				grid[y] = replace(grid[y], x, 'z')
+			case 'a':
 				starts = append(starts, fmt.Sprintf("%d,%d", x, y))
 			}
 		}
