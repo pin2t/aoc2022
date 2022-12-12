@@ -18,7 +18,7 @@ type monkey struct {
 		self bool
 	}
 	divisor   int
-	throw     map[bool]int
+	dest      map[bool]int
 	inspected int
 }
 
@@ -43,7 +43,7 @@ func (m *monkey) inspect(monkeys []monkey, relief bool) {
 			level = level / 3
 		}
 		level = level % int64(d)
-		var to *monkey = &monkeys[m.throw[level%int64(m.divisor) == 0]]
+		var to *monkey = &monkeys[m.dest[level%int64(m.divisor) == 0]]
 		to.items = append(to.items, level)
 	}
 	m.inspected += len(m.items)
@@ -63,7 +63,7 @@ func main() {
 	monkeys2 := []monkey{}
 	for scanner.Scan() {
 		if len(scanner.Text()) > 0 && scanner.Text()[:6] == "Monkey" {
-			m := monkey{items: []int64{}, throw: map[bool]int{}}
+			m := monkey{items: []int64{}, dest: map[bool]int{}}
 			scanner.Scan()
 			re := regexp.MustCompile("[0-9]+")
 			for _, s := range re.FindAllString(scanner.Text(), -1) {
@@ -85,10 +85,10 @@ func main() {
 			scanner.Scan()
 			var to int
 			fmt.Sscanf(scanner.Text(), "    If true: throw to monkey %d", &to)
-			m.throw[true] = to
+			m.dest[true] = to
 			scanner.Scan()
 			fmt.Sscanf(scanner.Text(), "    If false: throw to monkey %d", &to)
-			m.throw[false] = to
+			m.dest[false] = to
 			monkeys = append(monkeys, m)
 			monkeys2 = append(monkeys2, m)
 		}
