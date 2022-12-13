@@ -12,16 +12,14 @@ type item interface {
 	compare(with item) int
 }
 
-type number struct {
-	value int
-}
+type number int
 
 func (n number) compare(i item) int {
 	if nitem, ok := i.(number); ok {
-		if n.value < nitem.value {
+		if n < nitem {
 			return -1
 		}
-		if n.value > nitem.value {
+		if n > nitem {
 			return 1
 		}
 		return 0
@@ -33,44 +31,42 @@ func (n number) compare(i item) int {
 }
 
 func (n number) toList() list {
-	return list{[]item{number{n.value}}}
+	return list([]item{number(n)})
 }
 
-type list struct {
-	values []item
-}
+type list []item
 
 func (l list) compare(i item) int {
-	if nitem, ok := i.(number); ok {
-		return l.compare(nitem.toList())
+	if n, ok := i.(number); ok {
+		return l.compare(n.toList())
 	}
 	litem, _ := i.(list)
-	for j, v := range l.values {
-		if j >= len(litem.values) {
+	for j, v := range l {
+		if j >= len(litem) {
 			return 1
 		}
-		vresult := v.compare(litem.values[j])
+		vresult := v.compare(litem[j])
 		if vresult != 0 {
 			return vresult
 		}
 	}
-	if len(litem.values) > len(l.values) {
+	if len(litem) > len(l) {
 		return -1
 	}
 	return 0
 }
 
 func (l list) divider() bool {
-	if len(l.values) != 1 {
+	if len(l) != 1 {
 		return false
 	}
-	ll, ok := l.values[0].(list)
-	if !ok || len(ll.values) != 1 {
+	ll, ok := l[0].(list)
+	if !ok || len(ll) != 1 {
 		return false
 	}
 	var n number
-	n, ok = ll.values[0].(number)
-	if !ok || (n.value != 2 && n.value != 6) {
+	n, ok = ll[0].(number)
+	if !ok || (n != 2 && n != 6) {
 		return false
 	}
 	return true
@@ -83,17 +79,17 @@ func parse(input string, pos int) (item, int) {
 			ss = ss + string(input[pos])
 		}
 		n, _ := strconv.ParseInt(ss, 0, 0)
-		return number{int(n)}, pos
+		return number(int(n)), pos
 	}
 	if input[pos] == '[' {
-		result := list{[]item{}}
+		result := list([]item{})
 		if input[pos+1] == ']' {
 			return result, pos + 2
 		}
 		for pos += 1; pos < len(input); {
 			var it item
 			it, pos = parse(input, pos)
-			result.values = append(result.values, it)
+			result = append(result, it)
 			if input[pos] == ',' {
 				pos += 1
 				continue
@@ -122,8 +118,8 @@ func main() {
 		packets = append(packets, p1)
 		packets = append(packets, p2)
 	}
-	packets = append(packets, list{[]item{list{[]item{number{2}}}}})
-	packets = append(packets, list{[]item{list{[]item{number{6}}}}})
+	packets = append(packets, list([]item{list([]item{number(2)})}))
+	packets = append(packets, list([]item{list([]item{number(6)})}))
 	sort.Slice(packets, func(i, j int) bool {
 		return packets[i].compare(packets[j]) < 0
 	})
