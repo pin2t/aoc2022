@@ -56,22 +56,6 @@ func (l list) compare(i item) int {
 	return 0
 }
 
-func (l list) divider() bool {
-	if len(l) != 1 {
-		return false
-	}
-	ll, ok := l[0].(list)
-	if !ok || len(ll) != 1 {
-		return false
-	}
-	var n number
-	n, ok = ll[0].(number)
-	if !ok || (n != 2 && n != 6) {
-		return false
-	}
-	return true
-}
-
 func parse(input string, pos int) (item, int) {
 	if input[pos] >= '0' && input[pos] <= '9' {
 		ss := ""
@@ -118,14 +102,17 @@ func main() {
 		packets = append(packets, p1)
 		packets = append(packets, p2)
 	}
-	packets = append(packets, list([]item{list([]item{number(2)})}))
-	packets = append(packets, list([]item{list([]item{number(6)})}))
+	divider := func(n int) list {
+		return list([]item{list([]item{number(n)})})
+	}
+	packets = append(packets, divider(2))
+	packets = append(packets, divider(6))
 	sort.Slice(packets, func(i, j int) bool {
 		return packets[i].compare(packets[j]) < 0
 	})
 	n2 := 1
 	for i := 0; i < len(packets); i++ {
-		if ll, ok := packets[i].(list); ok && ll.divider() {
+		if ll, ok := packets[i].(list); ok && (ll.compare(divider(2)) == 0 || ll.compare(divider(6)) == 0) {
 			n2 *= i + 1
 		}
 	}
