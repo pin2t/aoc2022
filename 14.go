@@ -17,35 +17,34 @@ func direction(from, to int) int {
 	return -1
 }
 
-func simulate(field [][]byte) (n int) {
-	n = 0
-	for {
-		x, y := 500, 0
-		for y < 999 {
-			if field[y+1][x] == '.' {
-				y += 1
-			} else if field[y+1][x-1] == '.' {
-				y += 1
-				x -= 1
-			} else if field[y+1][x+1] == '.' {
-				y += 1
-				x += 1
-			} else {
-				field[y][x] = 'o'
-				break
-			}
-		}
-		if y == 999 || x == 500 && y == 0 {
-			break
-		}
-		n += 1
-	}
-	return n
-}
-
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	field := make([][]byte, 1000)
+	simulate := func() (n int) {
+		n = 0
+		for {
+			x, y := 500, 0
+			for y < 999 {
+				fall := func(dx int) bool {
+					if field[y+1][x+dx] == '.' {
+						y += 1
+						x += dx
+						return true
+					}
+					return false
+				}
+				if !fall(0) && !fall(-1) && !fall(1) {
+					field[y][x] = 'o'
+					break
+				}
+			}
+			if y == 999 || x == 500 && y == 0 {
+				break
+			}
+			n += 1
+		}
+		return n
+	}
 	for i := 0; i < 1000; i++ {
 		field[i] = make([]byte, 1000)
 		for j := 0; j < 1000; j++ {
@@ -66,22 +65,18 @@ func main() {
 			field[y][x] = '#'
 		}
 	}
-	field2 := make([][]byte, 1000)
-	for i := 0; i < 1000; i++ {
-		field2[i] = make([]byte, 1000)
-		copy(field2[i], field[i])
-	}
+	n1 := simulate()
 	floory := 0
 	for x := 0; x < 1000; x++ {
 		for y := 0; y < 1000; y++ {
-			if field2[y][x] != '.' && y > floory {
+			if field[y][x] != '.' && y > floory {
 				floory = y
 			}
 		}
 	}
 	floory += 2
 	for x := 0; x < 1000; x++ {
-		field2[floory][x] = '#'
+		field[floory][x] = '#'
 	}
-	fmt.Println(simulate(field), simulate(field2)+1)
+	fmt.Println(n1, n1+simulate()+1)
 }
