@@ -90,14 +90,22 @@ func (s sensor) merge(coverage []interval, targety int) []interval {
 	return result
 }
 
-func beacons(sensors []sensor, targety int) int {
+func beacons(sensors []sensor, target int) int {
 	result := map[int]bool{}
 	for _, b := range sensors {
-		if b.beacon.y == targety {
+		if b.beacon.y == target {
 			result[b.beacon.x] = true
 		}
 	}
 	return len(result)
+}
+
+func coverage(sensors []sensor, target int) []interval {
+	result := []interval{}
+	for _, s := range sensors {
+		result = s.merge(result, target)
+	}
+	return result
 }
 
 func main() {
@@ -109,22 +117,15 @@ func main() {
 			&s.pos.x, &s.pos.y, &s.beacon.x, &s.beacon.y)
 		sensors = append(sensors, s)
 	}
-	coverage := []interval{}
-	for _, s := range sensors {
-		coverage = s.merge(coverage, 2000000)
-	}
 	n1 := 0
-	for _, c := range coverage {
+	for _, c := range coverage(sensors, 2000000) {
 		n1 += c.len()
 	}
 	n1 -= beacons(sensors, 2000000)
 	for y := 0; y <= 4000000; y++ {
-		coverage := []interval{}
-		for _, s := range sensors {
-			coverage = s.merge(coverage, y)
-		}
-		if len(coverage) > 1 {
-			fmt.Println(n1, (coverage[0].right+1)*4000000+y)
+		c := coverage(sensors, y)
+		if len(c) > 1 {
+			fmt.Println(n1, (c[0].right+1)*4000000+y)
 			break
 		}
 	}
