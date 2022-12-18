@@ -34,7 +34,7 @@ type state struct {
 }
 
 func (s state) open() state {
-	opened := sset{}
+	opened := sset(make(map[string]bool, 50))
 	for k, v := range s.opened {
 		opened[k] = v
 	}
@@ -59,7 +59,7 @@ type state2 struct {
 }
 
 func (s state2) open() state2 {
-	opened := sset{}
+	opened := sset(make(map[string]bool, 50))
 	for k, v := range s.opened {
 		opened[k] = v
 	}
@@ -94,8 +94,9 @@ func main() {
 	}
 	n1, n2 := 0, 0
 	{
-		processed := sset{}
-		queue := []state{state{"AA", sset{}, 30, 0}}
+		processed := sset(make(map[string]bool, 10000000))
+		queue := make([]state, 10000000)
+		queue = append(queue, state{"AA", sset{}, 30, 0})
 		for len(queue) > 0 {
 			s := queue[0]
 			queue = queue[1:]
@@ -116,8 +117,9 @@ func main() {
 		}
 	}
 	{
-		processed := sset{}
-		queue := []state2{state2{"AA", "AA", sset{}, 26, 0}}
+		processed := sset(make(map[string]bool, 10000000))
+		queue := make([]state2, 10000000)
+		queue = append(queue, state2{"AA", "AA", sset{}, 26, 0})
 		for len(queue) > 0 {
 			s := queue[0]
 			queue = queue[1:]
