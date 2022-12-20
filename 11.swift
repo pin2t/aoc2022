@@ -22,7 +22,7 @@ struct Monkey {
     var op: [String] = []
     var inspected: Int = 0, div: Int = 1
 
-    mutating func inspect(_ ms: [Monkeys], _ relief: Bool) {
+    mutating func inspect(_ ms: [Monkey], _ relief: Bool) {
         for item in self.items {
             let lcm = ms.map { $0.div }.reduce(1, *)
             var level: Int = 0, arg: Int = op[1] == "old" ? item : Int(op[1])!
@@ -38,7 +38,6 @@ struct Monkey {
             } else {
                 to = lines[4]!.numbers[0]
             }
-
         }
         self.inspected += self.items.count
         self.items = []

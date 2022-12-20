@@ -18,13 +18,12 @@ func max(a, b int) int {
 type sset map[string]bool
 
 func (set sset) contains(key string) bool {
-	if _, result := set[key]; result {
-		return true
-	}
-	return false
+	_, result := set[key]
+	return result
 }
 
 var flow = map[string]int{}
+var tunnels = sset{}
 
 type state struct {
 	valve    string
@@ -79,9 +78,34 @@ func (s state2) step(to, eto string) state2 {
 	return state2{to, eto, s.opened, s.timeLeft - 1, s.pressure}
 }
 
+func pressure(initial state, forbidden sset) int {
+	result := 0
+	processed := sset(make(map[string]bool, 10000000))
+	queue := make([]state, 10000000)
+	queue = append(queue, initial)
+	for len(queue) > 0 {
+		s := queue[0]
+		queue = queue[1:]
+		key := fmt.Sprintf("%s,%d", s.valve, s.pressure)
+		if processed.contains(key) || s.timeLeft == 0 {
+			continue
+		}
+		processed[key] = true
+		result = max(result, s.pressure)
+		if !s.opened.contains(s.valve) && !forbidden.contains(s.valve) && flow[s.valve] > 0 {
+			queue = append(queue, s.open())
+		}
+		for to, _ := range flow {
+			if to != s.valve && !forbidden.contains(to) && tunnels.contains(s.valve+to) {
+				queue = append(queue, s.step(to))
+			}
+		}
+	}
+	return result
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	tunnels := sset{}
 	reFlow := regexp.MustCompile("[0-9]+")
 	reNames := regexp.MustCompile("[A-Z]{2}")
 	for scanner.Scan() {
@@ -92,71 +116,17 @@ func main() {
 			tunnels[names[0]+names[i]] = true
 		}
 	}
-	n1, n2 := 0, 0
-	{
-		processed := sset(make(map[string]bool, 10000000))
-		queue := make([]state, 10000000)
-		queue = append(queue, state{"AA", sset{}, 30, 0})
-		for len(queue) > 0 {
-			s := queue[0]
-			queue = queue[1:]
-			key := fmt.Sprintf("%s,%d", s.valve, s.pressure)
-			if processed.contains(key) || s.timeLeft == 0 {
-				continue
-			}
-			processed[key] = true
-			n1 = max(n1, s.pressure)
-			if !s.opened.contains(s.valve) && flow[s.valve] > 0 {
-				queue = append(queue, s.open())
-			}
-			for to, _ := range flow {
-				if to != s.valve && tunnels.contains(s.valve+to) {
-					queue = append(queue, s.step(to))
-				}
-			}
-		}
+	n1 := pressure(state{"AA", sset{}, 30, 0}, sset{})
+	first := sset{}
+	second := sset{}
+	for v, _ := range flow {
+		second[v] = true
 	}
-	{
-		processed := sset(make(map[string]bool, 10000000))
-		queue := make([]state2, 10000000)
-		queue = append(queue, state2{"AA", "AA", sset{}, 26, 0})
-		for len(queue) > 0 {
-			s := queue[0]
-			queue = queue[1:]
-			if s.timeLeft == 0 {
-				continue
-			}
-			key := fmt.Sprintf("%s%s,%d", s.valve, s.evalve, s.pressure)
-			if processed.contains(key) {
-				continue
-			}
-			processed[key] = true
-			n2 = max(n2, s.pressure)
-			leftPressure := 0
-			for v, f := range flow {
-				if !s.opened.contains(v) {
-					leftPressure += f
-				}
-			}
-			if n2 > s.pressure+leftPressure*(s.timeLeft-1) {
-				continue
-			}
-			if !s.opened.contains(s.valve) && flow[s.valve] > 0 ||
-				!s.opened.contains(s.evalve) && flow[s.evalve] > 0 {
-				queue = append(queue, s.open())
-			}
-			for to, _ := range flow {
-				for eto, _ := range flow {
-					if to != eto && to != s.valve && tunnels.contains(s.valve+to) &&
-						eto != s.evalve && tunnels.contains(s.evalve+eto) {
-						queue = append(queue, s.step(to, eto))
-					}
-				}
-			}
-			if len(processed)%10000 == 0 {
-				fmt.Println(n2, len(processed), len(queue), s.timeLeft, s)
-			}
-		}
+	n2 := 0
+	for v, _ := range second {
+		n2 = max(n2, pressure(state{"AA", sset{}, 26, 0}, first)+pressure(state{"AA", sset{}, 26, 0}, second))
+		delete(second, v)
+		first[v] = true
 	}
 	fmt.Println(n1, n2)
 }
