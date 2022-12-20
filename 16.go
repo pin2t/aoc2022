@@ -124,7 +124,7 @@ func main() {
 	}
 	n1 := pressure(state{0, vset{}, 30, 0}, vset{})
 	n2 := 0
-	for nset, first := range powerset(nonempty) {
+	for _, first := range powerset(nonempty) {
 		second := vset{}
 		for v, f := range flow {
 			if !first.contains(v) && f > 0 {
