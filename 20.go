@@ -14,30 +14,20 @@ func abs(a int64) int64 {
 	return a
 }
 
-func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	file := []int{}
-	file2 := []int64{}
-	for scanner.Scan() {
-		n, _ := strconv.ParseInt(scanner.Text(), 0, 0)
-		file = append(file, int(n))
-		file2 = append(file2, n)
-	}
-	indices := make([]int, len(file))
-	indices2 := make([]int, len(file2))
-	for i, _ := range file {
-		indices[i] = i
-		indices2[i] = i
-	}
+func mix(input []int, indices []int, multiplicator int) ([]int, []int) {
+	file := make([]int, len(input))
+	copy(file, input)
+	ind := make([]int, len(indices))
+	copy(ind, indices)
 	for i := 0; i < len(file); i++ {
 		from := 0
-		for from < len(indices) {
-			if indices[from] == i {
+		for from < len(ind) {
+			if ind[from] == i {
 				break
 			}
 			from += 1
 		}
-		to := from + file[from]
+		to := from + (file[from]*multiplicator)%(len(file)-1)
 		for to <= 0 {
 			to += len(file) - 1
 		}
@@ -45,52 +35,42 @@ func main() {
 			to -= len(file) - 1
 		}
 		n := file[from]
-		nidx := indices[from]
+		nidx := ind[from]
 		if to > from {
 			copy(file[from:], file[from+1:to+1])
-			copy(indices[from:], indices[from+1:to+1])
+			copy(ind[from:], ind[from+1:to+1])
 		} else {
 			copy(file[to+1:], file[to:from])
-			copy(indices[to+1:], indices[to:from])
+			copy(ind[to+1:], ind[to:from])
 		}
 		file[to] = n
-		indices[to] = nidx
+		ind[to] = nidx
 	}
+	return file, ind
+}
+
+func main() {
+	scanner := bufio.NewScanner(os.Stdin)
+	file := []int{}
+	for scanner.Scan() {
+		n, _ := strconv.ParseInt(scanner.Text(), 0, 0)
+		file = append(file, int(n))
+	}
+	indices := make([]int, len(file))
+	for i, _ := range file {
+		indices[i] = i
+	}
+	file1, _ := mix(file, indices, 1)
 	n1 := 0
-	for j := 0; j < len(file); j++ {
-		if file[j] == 0 {
-			n1 = file[(j+1000)%len(file)] + file[(j+2000)%len(file)] + file[(j+3000)%len(file)]
+	for j := 0; j < len(file1); j++ {
+		if file1[j] == 0 {
+			n1 = file1[(j+1000)%len(file1)] + file1[(j+2000)%len(file1)] + file1[(j+3000)%len(file1)]
 			break
 		}
 	}
-	for r := 0; r < 10; r++ {
-		for i := 0; i < len(file2); i++ {
-			from := int64(0)
-			for from < int64(len(indices2)) {
-				if indices2[from] == i {
-					break
-				}
-				from++
-			}
-			to := from + int64((file2[from]*int64(811589153))%int64(len(file2)-1))
-			for to <= 0 {
-				to += int64(len(file2) - 1)
-			}
-			for to >= int64(len(file)) {
-				to -= int64(len(file2) - 1)
-			}
-			n := file2[from]
-			nidx := indices2[from]
-			if to > from {
-				copy(file2[from:], file2[from+1:to+1])
-				copy(indices2[from:], indices2[from+1:to+1])
-			} else {
-				copy(file2[to+1:], file2[to:from])
-				copy(indices2[to+1:], indices2[to:from])
-			}
-			file2[to] = n
-			indices2[to] = nidx
-		}
+	file2, indices2 := mix(file, indices, 811589153)
+	for r := 0; r < 9; r++ {
+		file2, indices2 = mix(file2, indices2, 811589153)
 	}
 	for j := 0; j < len(file2); j++ {
 		if file2[j] == 0 {
