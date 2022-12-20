@@ -7,6 +7,13 @@ import (
 	"strconv"
 )
 
+func abs(a int64) int64 {
+	if a < 0 {
+		return -a
+	}
+	return a
+}
+
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	file := []int{}
@@ -49,12 +56,11 @@ func main() {
 		file[to] = n
 		indices[to] = nidx
 	}
+	n1 := 0
 	for j := 0; j < len(file); j++ {
 		if file[j] == 0 {
-			fmt.Println(
-				file[(j+1000)%len(file)] +
-					file[(j+2000)%len(file)] +
-					file[(j+3000)%len(file)])
+			n1 = file[(j+1000)%len(file)] + file[(j+2000)%len(file)] + file[(j+3000)%len(file)]
+			break
 		}
 	}
 	for r := 0; r < 10; r++ {
@@ -67,11 +73,11 @@ func main() {
 				from += 1
 			}
 			to := from + file2[from]
-			for to <= 0 {
-				to += int64(len(file2) - 1)
+			if to < 0 {
+				to = int64(abs(to)%int64(len(file2)-1) + 1)
 			}
-			for to >= int64(len(file2)) {
-				to -= int64(len(file2) - 1)
+			if to >= int64(len(file2)) {
+				to = int64(to % int64(len(file2)-1))
 			}
 			n := file2[from]
 			nidx := indices2[from]
@@ -88,9 +94,9 @@ func main() {
 	}
 	for j := 0; j < len(file2); j++ {
 		if file2[j] == 0 {
-			fmt.Println(
-				file2[(j+1000)%len(file2)] +
-					file2[(j+2000)%len(file2)] +
+			fmt.Println(n1,
+				file2[(j+1000)%len(file2)]+
+					file2[(j+2000)%len(file2)]+
 					file2[(j+3000)%len(file2)])
 		}
 	}
