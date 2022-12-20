@@ -78,6 +78,7 @@ func main() {
 				file2[(j+1000)%len(file2)]*811589153+
 					file2[(j+2000)%len(file2)]*811589153+
 					file2[(j+3000)%len(file2)]*811589153)
+			break
 		}
 	}
 }
