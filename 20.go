@@ -21,10 +21,10 @@ func main() {
 	for scanner.Scan() {
 		n, _ := strconv.ParseInt(scanner.Text(), 0, 0)
 		file = append(file, int(n))
-		file2 = append(file2, n*811589153)
+		file2 = append(file2, n)
 	}
 	indices := make([]int, len(file))
-	indices2 := make([]int, len(file))
+	indices2 := make([]int, len(file2))
 	for i, _ := range file {
 		indices[i] = i
 		indices2[i] = i
@@ -70,14 +70,14 @@ func main() {
 				if indices2[from] == i {
 					break
 				}
-				from += 1
+				from++
 			}
-			to := from + file2[from]
-			if to < 0 {
-				to = int64(abs(to)%int64(len(file2)-1) + 1)
+			to := from + int64((file2[from]*int64(811589153))%int64(len(file2)-1))
+			for to <= 0 {
+				to += int64(len(file2) - 1)
 			}
-			if to >= int64(len(file2)) {
-				to = int64(to % int64(len(file2)-1))
+			for to >= int64(len(file)) {
+				to -= int64(len(file2) - 1)
 			}
 			n := file2[from]
 			nidx := indices2[from]
@@ -95,9 +95,9 @@ func main() {
 	for j := 0; j < len(file2); j++ {
 		if file2[j] == 0 {
 			fmt.Println(n1,
-				file2[(j+1000)%len(file2)]+
-					file2[(j+2000)%len(file2)]+
-					file2[(j+3000)%len(file2)])
+				file2[(j+1000)%len(file2)]*811589153+
+					file2[(j+2000)%len(file2)]*811589153+
+					file2[(j+3000)%len(file2)]*811589153)
 		}
 	}
 }
