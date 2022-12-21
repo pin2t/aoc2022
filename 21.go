@@ -8,36 +8,31 @@ import (
 )
 
 type monkey struct {
-	n    int64
+	n    float64
 	wait []string
 	op   string
 }
 
-func (m monkey) yell(monkeys map[string]monkey) int64 {
+func (m monkey) yell(monkeys map[string]monkey) float64 {
 	if m.n > 0 {
 		return m.n
 	}
+	yell1, yell2 := monkeys[m.wait[0]].yell(monkeys), monkeys[m.wait[1]].yell(monkeys)
 	switch m.op {
 	case "+":
-		return monkeys[m.wait[0]].yell(monkeys) + monkeys[m.wait[1]].yell(monkeys)
+		return yell1 + yell2
 	case "-":
-		return monkeys[m.wait[0]].yell(monkeys) - monkeys[m.wait[1]].yell(monkeys)
+		return yell1 - yell2
 	case "*":
-		return monkeys[m.wait[0]].yell(monkeys) * monkeys[m.wait[1]].yell(monkeys)
+		return yell1 * yell2
 	case "/":
-		return monkeys[m.wait[0]].yell(monkeys) / monkeys[m.wait[1]].yell(monkeys)
+		return yell1 / yell2
 	}
 	panic("unknown operation" + fmt.Sprintf("%v", m))
 }
 
-func (m monkey) compare(monkeys map[string]monkey) int {
-	if monkeys[m.wait[0]].yell(monkeys) < monkeys[m.wait[1]].yell(monkeys) {
-		return -1
-	}
-	if monkeys[m.wait[0]].yell(monkeys) > monkeys[m.wait[1]].yell(monkeys) {
-		return 1
-	}
-	return 0
+func (m monkey) compare(monkeys map[string]monkey) float64 {
+	return monkeys[m.wait[0]].yell(monkeys) - monkeys[m.wait[1]].yell(monkeys)
 }
 
 func main() {
@@ -52,28 +47,22 @@ func main() {
 		} else {
 			fmt.Sscanf(scanner.Text(), "%s %s %s %s", &name, &w1, &op, &w2)
 		}
-		if n == 0 && op == "" {
-			panic("wrong monkey " + scanner.Text() + " " + string(n) + " op " + op)
-		}
-		monkeys[name[:4]] = monkey{n, []string{w1, w2}, op}
+		monkeys[name[:4]] = monkey{float64(n), []string{w1, w2}, op}
 	}
 	n1 := monkeys["root"].yell(monkeys)
-	left, right := int64(1), int64(1000000000000000)
-	monkeys["humn"] = monkey{int64(left + (right-left)/2), []string{}, ""}
+	low, high := int64(1), int64(1000000000000000)
+	monkeys["humn"] = monkey{float64(low + (high-low)/2), []string{}, ""}
 	root := monkeys["root"]
 	for {
 		cmp := root.compare(monkeys)
 		if cmp > 0 {
-			left += (right - left) / 2
+			low += (high - low) / 2
 		} else if cmp < 0 {
-			right -= (right - left) / 2
+			high -= (high - low) / 2
 		} else if cmp == 0 {
-			fmt.Println(n1, monkeys["humn"].n)
-			for n := left; n <= right; n++ {
-				fmt.Println(n, monkeys[root.wait[0]].yell(monkeys), monkeys[root.wait[1]].yell(monkeys))
-			}
+			fmt.Println(int64(n1), int64(monkeys["humn"].n))
 			return
 		}
-		monkeys["humn"] = monkey{int64(left + (right-left)/2), []string{}, ""}
+		monkeys["humn"] = monkey{float64(low + (high-low)/2), []string{}, ""}
 	}
 }
