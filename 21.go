@@ -47,7 +47,6 @@ func main() {
 		monkeys[name[:4]] = monkey{float64(n), []string{w1, w2}, op}
 	}
 	n1 := monkeys["root"].yell()
-
 	low, high := int64(1), int64(1000000000000000)
 	monkeys["humn"] = monkey{float64(low + (high-low)/2), []string{}, ""}
 	root := monkeys["root"]
