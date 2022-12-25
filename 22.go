@@ -82,21 +82,19 @@ func step2() {
 	np := point{state.pos.x + state.dx, state.pos.y + state.dy}
 	nd := point{state.dx, state.dy}
 	if np.x < left {
-		fmt.Println("out of right bound, state", state, "bounds", left, right, top, bottom)
 		if state.pos.x == 0 {
-			if state.pos.y < 2*size-1 {
-				np, nd = point{state.pos.y + 2*size, 0}, point{0, 1}
+			if state.pos.y < 3*size {
+				np, nd = point{size, size - state.pos.y}, point{0, 1}
 			} else {
 				np, nd = point{4*size - 1, state.pos.y - 2*size}, point{-1, 0}
 			}
 		}
-		if state.pos.x == size-1 {
+		if state.pos.x == size {
+			np, nd = point{0, 3*size - state.pos.y}, point{0, 1}
+		}
+		if state.pos.x == 2*size {
 			np, nd = point{state.pos.y + size, size - 1}, point{0, 1}
 		}
-		if state.pos.x == 2*size-1 {
-			np, nd = point{state.pos.y + size, size - 1}, point{0, 1}
-		}
-		fmt.Println(np, nd)
 	}
 	if np.x > right {
 		if state.pos.x == size-1 {
