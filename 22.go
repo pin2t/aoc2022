@@ -13,6 +13,7 @@ type point struct{ x, y int }
 var walls = map[point]bool{}
 var tiles = map[point]bool{}
 var rows = 0
+var size = 50
 
 func min(a, b int) int {
 	if a < b {
@@ -28,45 +29,32 @@ func max(a, b int) int {
 	return b
 }
 
-func bounds(y int) (int, int) {
+func bounds(x int, y int) (int, int, int, int) {
 	left, right := 10000, 0
-	for p, _ := range walls {
-		if p.y == y {
-			left, right = min(left, p.x), max(right, p.x)
-		}
-	}
-	for p, _ := range tiles {
-		if p.y == y {
-			left, right = min(left, p.x), max(right, p.x)
-		}
-	}
-	return left, right
-}
-
-func boundsy(x int) (int, int) {
 	top, bottom := 10000, 0
 	for p, _ := range walls {
-		if p.x == x {
+		if p.y == y || p.x == x {
+			left, right = min(left, p.x), max(right, p.x)
 			top, bottom = min(top, p.y), max(bottom, p.y)
 		}
 	}
 	for p, _ := range tiles {
-		if p.x == x {
+		if p.y == y || p.x == x {
+			left, right = min(left, p.x), max(right, p.x)
 			top, bottom = min(top, p.y), max(bottom, p.y)
 		}
 	}
-	return top, bottom
+	return left, right, top, bottom
 }
 
-var player struct {
+var state struct {
 	pos    point
 	dx, dy int
 }
 
-func step() {
-	np := point{player.pos.x + player.dx, player.pos.y + player.dy}
-	left, right := bounds(player.pos.y)
-	top, bottom := boundsy(player.pos.x)
+func step1() {
+	np := point{state.pos.x + state.dx, state.pos.y + state.dy}
+	left, right, top, bottom := bounds(state.pos.x, state.pos.y)
 	if np.x < left {
 		np.x = right
 	}
@@ -83,76 +71,138 @@ func step() {
 		return
 	}
 	if _, found := tiles[np]; found {
-		player.pos = np
+		state.pos = np
 		return
 	}
-	panic("wrong position " + fmt.Sprintf("%v", player))
+	panic("wrong position " + fmt.Sprintf("%v", state))
 }
 
-// todo: movement
 func step2() {
-	np := point{player.pos.x + player.dx, player.pos.y + player.dy}
-	left, right := bounds(player.pos.y)
-	top, bottom := boundsy(player.pos.x)
+	left, right, top, bottom := bounds(state.pos.x, state.pos.y)
+	np := point{state.pos.x + state.dx, state.pos.y + state.dy}
+	nd := point{state.dx, state.dy}
 	if np.x < left {
+		fmt.Println("out of right bound, state", state, "bounds", left, right, top, bottom)
+		if state.pos.x == 0 {
+			if state.pos.y < 2*size-1 {
+				np, nd = point{state.pos.y + 2*size, 0}, point{0, 1}
+			} else {
+				np, nd = point{4*size - 1, state.pos.y - 2*size}, point{-1, 0}
+			}
+		}
+		if state.pos.x == size-1 {
+			np, nd = point{state.pos.y + size, size - 1}, point{0, 1}
+		}
+		if state.pos.x == 2*size-1 {
+			np, nd = point{state.pos.y + size, size - 1}, point{0, 1}
+		}
+		fmt.Println(np, nd)
 	}
 	if np.x > right {
+		if state.pos.x == size-1 {
+			np, nd = point{state.pos.y - size, 2*size - 1}, point{0, -1}
+		}
+		if state.pos.x == 3*size-1 {
+			np, nd = point{4*size - (state.pos.y - size) - 1, 2 * size}, point{0, 1}
+		}
+		if state.pos.x == 4*size-1 {
+			np, nd = point{0, state.pos.y + 2*size}, point{1, 0}
+		}
 	}
 	if np.y < top {
+		if state.pos.y == size {
+			if state.pos.x < size {
+				np, nd = point{size - state.pos.x, 0}, point{0, 1}
+			} else {
+				np, nd = point{2 * size, state.pos.x - size}, point{1, 0}
+			}
+		}
+		if state.pos.y == 0 {
+			if state.pos.x < size*3-1 {
+				np, nd = point{size - (state.pos.x - 2*size), size - 1}, point{0, 1}
+			} else {
+				np, nd = point{0, state.pos.x - 2*size}, point{0, 1}
+			}
+		}
 	}
 	if np.y > bottom {
+		if state.pos.y == 3*size-1 {
+			np, nd = point{3*size - 1 - state.pos.x, 2*size - 1}, point{0, -1}
+		}
+		if state.pos.y == 2*size-1 {
+			if state.pos.x < 2*size {
+				np, nd = point{size - 1, state.pos.x + size}, point{-1, 0}
+			} else {
+				np, nd = point{size - (state.pos.x - 2*size), 3*size - 1}, point{0, -1}
+			}
+		}
+		if state.pos.y == size-1 {
+			np, nd = point{3*size - 1, size + (state.pos.x - 3*size)}, point{-1, 0}
+		}
 	}
 	if _, found := walls[np]; found {
 		return
 	}
 	if _, found := tiles[np]; found {
-		player.pos = np
+		state.pos = np
+		state.dx = nd.x
+		state.dy = nd.y
 		return
 	}
-	panic("wrong position " + fmt.Sprintf("%v", player))
+	panic("wrong position " + fmt.Sprintf("%v", np) + " state " + fmt.Sprintf("%v", state))
 }
 
-func left() {
-	direction := point{player.dx, player.dy}
-	switch direction {
-	case point{1, 0}:
-		player.dx, player.dy = 0, -1
-	case point{0, 1}:
-		player.dx, player.dy = 1, 0
-	case point{-1, 0}:
-		player.dx, player.dy = 0, 1
-	case point{0, -1}:
-		player.dx, player.dy = -1, 0
+func password(commands string, step func()) int {
+	l, _, _, _ := bounds(50, 0)
+	state.pos = point{l, 0}
+	state.dx, state.dy = 1, 0
+	re := regexp.MustCompile("L|R|[0-9]+")
+	for _, cmd := range re.FindAllString(commands, -1) {
+		switch cmd {
+		case "R":
+			d := point{state.dx, state.dy}
+			switch d {
+			case point{1, 0}:
+				state.dx, state.dy = 0, 1
+			case point{0, 1}:
+				state.dx, state.dy = -1, 0
+			case point{-1, 0}:
+				state.dx, state.dy = 0, -1
+			case point{0, -1}:
+				state.dx, state.dy = 1, 0
+			}
+		case "L":
+			d := point{state.dx, state.dy}
+			switch d {
+			case point{1, 0}:
+				state.dx, state.dy = 0, -1
+			case point{0, 1}:
+				state.dx, state.dy = 1, 0
+			case point{-1, 0}:
+				state.dx, state.dy = 0, 1
+			case point{0, -1}:
+				state.dx, state.dy = -1, 0
+			}
+		default:
+			n, _ := strconv.ParseInt(cmd, 0, 0)
+			for i := 0; i < int(n); i++ {
+				step()
+			}
+		}
 	}
-}
-
-func right() {
-	direction := point{player.dx, player.dy}
-	switch direction {
+	d := point{state.dx, state.dy}
+	face := 0
+	switch d {
 	case point{1, 0}:
-		player.dx, player.dy = 0, 1
+		face = 0
 	case point{0, 1}:
-		player.dx, player.dy = -1, 0
+		face = 1
 	case point{-1, 0}:
-		player.dx, player.dy = 0, -1
+		face = 2
 	case point{0, -1}:
-		player.dx, player.dy = 1, 0
+		face = 3
 	}
-}
-
-func face() int {
-	direction := point{player.dx, player.dy}
-	switch direction {
-	case point{1, 0}:
-		return 0
-	case point{0, 1}:
-		return 1
-	case point{-1, 0}:
-		return 2
-	case point{0, -1}:
-		return 3
-	}
-	return -1
+	return (state.pos.y+1)*1000 + (state.pos.x+1)*4 + face
 }
 
 func main() {
@@ -171,40 +221,9 @@ func main() {
 		y++
 	}
 	rows = y
-	l, _ := bounds(0)
-	player.pos = point{l, 0}
-	player.dx, player.dy = 1, 0
-	scanner.Scan()
-	re := regexp.MustCompile("L|R|[0-9]+")
-	for _, cmd := range re.FindAllString(scanner.Text(), -1) {
-		switch cmd {
-		case "R":
-			right()
-		case "L":
-			left()
-		default:
-			n, _ := strconv.ParseInt(cmd, 0, 0)
-			for i := 0; i < int(n); i++ {
-				step()
-			}
-		}
+	if rows == 12 {
+		size = 4
 	}
-	password1 := (player.pos.y+1)*1000 + (player.pos.x+1)*4 + face()
-	player.pos = point{l, 0}
-	player.dx, player.dy = 1, 0
 	scanner.Scan()
-	for _, cmd := range re.FindAllString(scanner.Text(), -1) {
-		switch cmd {
-		case "R":
-			right()
-		case "L":
-			left()
-		default:
-			n, _ := strconv.ParseInt(cmd, 0, 0)
-			for i := 0; i < int(n); i++ {
-				step2()
-			}
-		}
-	}
-	fmt.Println(password1, (player.pos.y+1)*1000+(player.pos.x+1)*4+face())
+	fmt.Println(password(scanner.Text(), step1), password(scanner.Text(), step2))
 }
