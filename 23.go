@@ -56,7 +56,7 @@ func main() {
 			if !north && !south && !west && !east {
 				continue
 			}
-			counts := []struct {
+			can := []struct {
 				can bool
 				pos pos
 			}{
@@ -66,9 +66,9 @@ func main() {
 				{east, pos{e.x + 1, e.y}},
 			}
 			for j := 0; j < 4; j++ {
-				cp := counts[(i+j)%4]
-				if cp.can {
-					moves[e] = cp.pos
+				to := (i + j) % 4
+				if can[to].can {
+					moves[e] = can[to].pos
 					break
 				}
 			}
