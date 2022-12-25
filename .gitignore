@@ -1,2 +1,5 @@
 .vscode/settings.json
 .DS_Store
+.idea/aoc2022.iml
+.idea/modules.xml
+.idea/vcs.xml
