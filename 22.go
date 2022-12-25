@@ -89,21 +89,18 @@ func step() {
 	panic("wrong position " + fmt.Sprintf("%v", player))
 }
 
+// todo: movement
 func step2() {
 	np := point{player.pos.x + player.dx, player.pos.y + player.dy}
 	left, right := bounds(player.pos.y)
 	top, bottom := boundsy(player.pos.x)
 	if np.x < left {
-		np.x = right
 	}
 	if np.x > right {
-		np.x = left
 	}
 	if np.y < top {
-		np.y = bottom
 	}
 	if np.y > bottom {
-		np.y = top
 	}
 	if _, found := walls[np]; found {
 		return
