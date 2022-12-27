@@ -30,7 +30,6 @@ class Monkey {
         self.div = div
     }
     func inspect(_ ms: inout [Monkey]) {
-        let lcm: UInt64 = ms.map {$0.div}.reduce(1, *)
         for item in items {
             let arg: UInt64 = op[7] == "old" ? item : UInt64(op[7])!
             var level: UInt64 = op[6] == "+" ? item + arg : item * arg
@@ -44,6 +43,7 @@ class Monkey {
     }
 }
 
+var lcm: UInt64
 var monkeys: [Monkey] = [], monkeys2: [Monkey] = []
 
 while let line = readLine() {
@@ -65,15 +65,12 @@ while let line = readLine() {
         ))
    }
 }
+lcm = monkeys.map {$0.div}.reduce(1, *)
 for _ in 0..<20 {
-    for m in monkeys {
-        m.inspect(&monkeys) 
-    }
+    for m in monkeys { m.inspect(&monkeys) }
 }
 for _ in 0..<10000 {
-    for m in monkeys2 { 
-        m.inspect(&monkeys2) 
-    }
+    for m in monkeys2 { m.inspect(&monkeys2) }
 }
 monkeys.sort { $1.inspected < $0.inspected }
 monkeys2.sort { $1.inspected < $0.inspected }
