@@ -23,8 +23,7 @@ func parse(_ targety: Int) -> ([Interval], Int) {
     var result: [Interval] = []
     var beacons: Set<Int> = []
     for s in sensors {
-        let sx = s[0], sy = s[1]
-        let bx = s[2], by = s[3]
+        let sx = s[0], sy = s[1], bx = s[2], by = s[3]
         let distance = abs(bx - sx) + abs(by - sy)
         let offset = distance - abs(sy - targety)
         if offset >= 0 {

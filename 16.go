@@ -47,10 +47,6 @@ func (s state) open() state {
 	}
 }
 
-func (s state) step(to int) state {
-	return state{to, s.opened, s.timeLeft - 1, s.pressure}
-}
-
 func pressure(initial state, forbidden vset) int {
 	result := 0
 	processed := vset{}
@@ -70,7 +66,7 @@ func pressure(initial state, forbidden vset) int {
 		}
 		for to, _ := range flow {
 			if to != s.valve && !forbidden.contains(to) && tunnels.contains(s.valve*26*26+to) {
-				queue = append(queue, s.step(to))
+				queue = append(queue, state{to, s.opened, s.timeLeft - 1, s.pressure})
 			}
 		}
 	}
