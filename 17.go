@@ -33,8 +33,9 @@ type state struct {
 	height int
 }
 
+var stones = make(map[pos]bool)
+
 func drop(r int64, threshold int64) int64 {
-	stones := make(map[pos]bool)
 	rock := shapes[r%int64(len(shapes))]
 	if r == 0 {
 		maxheight = -1
