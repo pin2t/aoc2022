@@ -43,7 +43,7 @@ func (m *monkey) inspect(monkeys []monkey, relief bool) {
 			level = level / 3
 		}
 		level = level % int64(d)
-		var to *monkey = &monkeys[m.dest[level%int64(m.divisor) == 0]]
+		var to = &monkeys[m.dest[level%int64(m.divisor) == 0]]
 		to.items = append(to.items, level)
 	}
 	m.inspected += len(m.items)

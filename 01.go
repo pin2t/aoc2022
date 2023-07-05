@@ -10,7 +10,7 @@ import (
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	calories := make([]int, 1)
+	calories := make([]int, 1000)
 	for scanner.Scan() {
 		if scanner.Text() == "" {
 			calories = append(calories, 0)
