@@ -56,12 +56,12 @@ func pressure(_ time: Int, _ valve: String, _ openmask: Int) -> Int {
     cache[key] = m
     return m
 }
-print(pressure(30, "AA", 0))
+let n1 = pressure(30, "AA", 0)
 var n2 = 0
 for openmask in 0...(1 << indices.count - 1) {
     n2 = max(n2, pressure(26, "AA", openmask) + pressure(26, "AA", ~openmask))
 }
-print(n2)
+print(n1, n2)
 extension String {
     func allMatches(_ pattern: String) -> [String] {
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
