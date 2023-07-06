@@ -17,11 +17,15 @@ func mix(_ input: [Int], _ indices: [Int], _ multiplicator: Int) -> ([Int], [Int
         let n = file[from]
         let nidx = ind[from]
         if to > from {
-            file.replaceSubrange(from...to, with: file[from+1...to])
-            ind.replaceSubrange(from...to, with: ind[from+1...to])
-        } else {
-            file.replaceSubrange(to+1...from, with: file[to..<from])
-            ind.replaceSubrange(to+1...from, with: ind[to..<from])
+            for i in from..<to {
+                file[i] = file[i + 1]
+                ind[i] = ind[i + 1]
+            }
+        } else if to != from {
+            for i in (to + 1)...from {
+                file[i] = file[i - 1]
+                ind[i] = ind[i - 1]
+            }
         }
         file[to] = n
         ind[to] = nidx

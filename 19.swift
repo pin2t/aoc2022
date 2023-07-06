@@ -7,24 +7,37 @@ struct Blueprint {
     var geode: (ore: Int, obsidian: Int)
 }
 
-func sum(_ items: [Int], _ a: [Int]) -> [Int] {
-    return [items[0] + a[0], items[1] + a[1], items[2] + a[2], items[3] + a[3]]
+struct Items: Hashable {
+    var ore, clay, obsidian, geode: Int
+
+    func add(_ ore: Int, _ clay: Int, _ obsidian: Int, _ geode: Int) -> Items {
+        return Items(ore: self.ore + ore, clay: self.clay + clay,
+            obsidian: self.obsidian + obsidian, geode: self.geode + geode)
+    }
 }
 
 struct State: Hashable {
     var minute: Int
-    var values: [Int] // ore, clay, obsidian, geode
-    var robots: [Int] // ore, clay, obsidian, geode
+    var values: Items
+    var robots: Items
+
+    init(_ m: Int, _ v: Items, _ r: Items) {
+        self.minute = m
+        self.values = v
+        self.robots = r
+    }
 
     func val() -> Int {
-        return robots[0] + robots[1] * 10 + robots[2] * 100 + robots[3] * 1000
+        return robots.ore + robots.clay * 10 + robots.obsidian * 100 + robots.geode * 1000
     }
 }
 
 func maxgeodes(_ bp: Blueprint, _ minutes: Int, _ maxlen: Int) -> Int {
     var m = 0, maxmin = 0
     var processed = Set<State>()
-    var queue = [State(minute: 0, values: [0, 0, 0, 0], robots: [1, 0, 0, 0])]
+    var queue = [State(0,
+        Items(ore: 0, clay: 0, obsidian: 0, geode: 0),
+        Items(ore: 1, clay: 0, obsidian: 0, geode: 0))]
 
     while !queue.isEmpty {
         if queue.first!.minute > maxmin {
@@ -33,39 +46,41 @@ func maxgeodes(_ bp: Blueprint, _ minutes: Int, _ maxlen: Int) -> Int {
             if queue.count > maxlen {
                 queue.sort { $0.val() > $1.val() }
                 queue.removeLast(queue.count - maxlen)
+                print("cutting queue, fist", queue.first!.minute, queue.first!.val())
                 continue
             }
         }
         let s = queue.removeFirst()
         if s.minute == minutes {
-            m = max(m, s.values[3])
+            m = max(m, s.values.geode)
             continue
         }
         if processed.contains(s) {
             continue
         }
         processed.insert(s)
-        if s.values[0] >= bp.geode.ore && s.values[2] >= bp.geode.obsidian {
-            queue.append(State(minute: s.minute + 1,
-                               values: sum(s.values, [s.robots[0] - bp.geode.ore, s.robots[1], s.robots[2] - bp.geode.obsidian, s.robots[3]]),
-                               robots: sum(s.robots, [0, 0, 0, 1])))
+        if s.values.ore >= bp.geode.ore && s.values.obsidian >= bp.geode.obsidian {
+            queue.append(State(s.minute + 1,
+               s.values.add(s.robots.ore - bp.geode.ore, s.robots.clay, s.robots.obsidian - bp.geode.obsidian, s.robots.geode),
+               s.robots.add(0, 0, 0, 1)))
         }
-        if s.values[0] >= bp.obsidian.ore && s.values[1] >= bp.obsidian.clay {
-            queue.append(State(minute: s.minute + 1,
-                               values: sum(s.values, [s.robots[0] - bp.obsidian.ore, s.robots[1] - bp.obsidian.clay, s.robots[2], s.robots[3]]),
-                               robots: sum(s.robots, [0, 0, 1, 0])))
+        if s.values.ore >= bp.obsidian.ore && s.values.clay >= bp.obsidian.clay {
+            queue.append(State(s.minute + 1,
+               s.values.add(s.robots.ore - bp.obsidian.ore, s.robots.clay - bp.obsidian.clay, s.robots.obsidian, s.robots.geode),
+               s.robots.add(0, 0, 1, 0)))
         }
-        if s.values[0] >= bp.clay {
-            queue.append(State(minute: s.minute + 1,
-                               values: sum(s.values, [s.robots[0] - bp.clay, s.robots[1], s.robots[2], s.robots[3]]),
-                               robots: sum(s.robots, [0, 1, 0, 0])))
+        if s.values.ore >= bp.clay {
+            queue.append(State(s.minute + 1,
+               s.values.add(s.robots.ore - bp.clay, s.robots.clay, s.robots.obsidian, s.robots.geode),
+               s.robots.add(0, 1, 0, 0)))
         }
-        if s.values[0] >= bp.ore {
-            queue.append(State(minute: s.minute + 1,
-                               values: sum(s.values, [s.robots[0] - bp.ore, s.robots[1], s.robots[2], s.robots[3]]),
-                               robots: sum(s.robots, [1, 0, 0, 0])))
+        if s.values.ore >= bp.ore {
+            queue.append(State(s.minute + 1,
+               s.values.add(s.robots.ore - bp.ore, s.robots.clay, s.robots.obsidian, s.robots.geode),
+               s.robots.add(1, 0, 0, 0)))
         }
-        queue.append(State(minute: s.minute + 1, values: sum(s.values, s.robots), robots: s.robots))
+        queue.append(State(s.minute + 1,
+            s.values.add(s.robots.ore, s.robots.clay, s.robots.obsidian, s.robots.geode), s.robots))
     }
     return m
 }
@@ -78,10 +93,12 @@ while let line = readLine() {
 var n1 = 0
 for bp in blueprints {
     n1 += bp.n * maxgeodes(bp, 24, 2000000)
+    print(n1, bp.n)
 }
 var prod = 1
 for bp in blueprints.prefix(3) {
     prod *= maxgeodes(bp, 32, 2000000)
+    print(prod, bp.n)
 }
 print(n1, prod)
 
