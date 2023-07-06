@@ -16,12 +16,11 @@ var shapes = [][]string{
 var jets string
 var dx = map[byte]int{'<': -1, '>': 1}
 var seen = map[string]state{}
-var maxheight int = 0
-var njet int = 0
+var njet = 0
 
-type pos struct{ x, y int }
+type pos struct{ x, y int64 }
 
-func max(a, b int) int {
+func max(a, b int64) int64 {
 	if a > b {
 		return a
 	}
@@ -30,17 +29,14 @@ func max(a, b int) int {
 
 type state struct {
 	iter   int64
-	height int
+	height int64
 }
 
 var stones = make(map[pos]bool)
 
-func drop(r int64, threshold int64) int64 {
+func drop(r int64, hstones int64, h int64, threshold int64) (int64, int64, int64) {
 	rock := shapes[r%int64(len(shapes))]
-	if r == 0 {
-		maxheight = -1
-	}
-	pp := pos{maxheight + 3 + len(rock), 2}
+	pp := pos{hstones + 3 + int64(len(rock)), 2}
 	for {
 		ch := jets[njet%len(jets)]
 		njet++
@@ -49,7 +45,7 @@ func drop(r int64, threshold int64) int64 {
 		for x, row := range rock {
 			for y, ch := range row {
 				if ch == '#' {
-					pp := pos{pp.x - x, y + pp.y + dy}
+					pp := pos{pp.x - int64(x), int64(y) + pp.y + int64(dy)}
 					if stones[pp] {
 						hitStone = true
 						break
@@ -57,16 +53,16 @@ func drop(r int64, threshold int64) int64 {
 				}
 			}
 		}
-		if (dy > 0 && pp.y+len(rock[0]) < 7 ||
+		if (dy > 0 && pp.y+int64(len(rock[0])) < 7 ||
 			dy < 0 && pp.y > 0) && !hitStone {
 			ch := jets[(njet-1)%len(jets)]
 			dy := dx[ch]
-			pp.y += dy
+			pp.y += int64(dy)
 		}
 		if pp.x == 0 {
 			break
 		}
-		if len(rock)-pp.x-1 == 0 {
+		if int64(len(rock))-pp.x-1 == 0 {
 			break
 		}
 		pp.x--
@@ -74,7 +70,7 @@ func drop(r int64, threshold int64) int64 {
 		for x, row := range rock {
 			for y, ch := range row {
 				if ch == '#' {
-					if stones[pos{pp.x - x, y + pp.y}] {
+					if stones[pos{pp.x - int64(x), int64(y) + pp.y}] {
 						overlap = true
 						break
 					}
@@ -87,20 +83,21 @@ func drop(r int64, threshold int64) int64 {
 		}
 		pp.x--
 	}
+	prevh := hstones
 	for x, row := range rock {
 		for y, ch := range row {
 			if ch == '#' {
-				_pp := pos{pp.x - x, y + pp.y}
+				_pp := pos{pp.x - int64(x), int64(y) + pp.y}
 				stones[_pp] = true
-				maxheight = max(maxheight, _pp.x)
+				hstones = max(hstones, _pp.x)
 			}
 		}
 	}
-	if r > 3000 {
+	if r > 3000 && r < 10000 {
 		key := ""
-		for x := maxheight; x > maxheight-100; x-- {
+		for x := hstones; x > hstones-100; x-- {
 			for y := 0; y < 7; y++ {
-				if stones[pos{x, y}] {
+				if stones[pos{x, int64(y)}] {
 					key = key + "#"
 				} else {
 					key = key + "."
@@ -110,25 +107,23 @@ func drop(r int64, threshold int64) int64 {
 		if prev, ok := seen[key]; ok {
 			idiff := r - prev.iter
 			remaining := threshold - r
-			if remaining%idiff == 0 {
-				height := int64(maxheight + 1)
-				hdiff := height - int64(prev.height)
-				remcycles := (remaining / idiff) + 1
-				return int64(prev.height) + int64(remcycles)*hdiff - 1
-			}
+			hdiff := hstones - prev.height
+			cycles := remaining / idiff
+			seen = map[string]state{}
+			return r + 1 + (cycles+1)*idiff, hstones, h + cycles*hdiff + (hstones - prevh)
+		} else {
+			seen[key] = state{r, hstones}
 		}
-		seen[key] = state{r, maxheight + 1}
 	}
-	return -1
+	return r + 1, hstones, h + (hstones - prevh)
 }
 
 func height(threshold int64) int64 {
-	for r := int64(0); r < threshold; r++ {
-		if x := drop(r, threshold); x > 0 {
-			return x
-		}
+	r, hstones, h := int64(0), int64(-1), int64(0)
+	for r < threshold {
+		r, hstones, h = drop(r, hstones, h, threshold)
 	}
-	return int64(maxheight + 1)
+	return h
 }
 
 func main() {

@@ -56,11 +56,7 @@ func height(_ threshold: Int64) -> Int64 {
             var key = ""
             for x in stride(from: maxheight, to: maxheight - 100, by: -1) {
                 for y in 0..<7 {
-                    if stones[[x, y]] != nil {
-                        key.append("#")
-                    } else {
-                        key.append(".")
-                    }
+                    key.append(stones[[x, y]] != nil ? "#" : ".")
                 }
             }
             if let prev = seen[key] {
@@ -70,7 +66,7 @@ func height(_ threshold: Int64) -> Int64 {
                     let height = Int64(maxheight + 1)
                     let hdiff = height - prev[1]
                     let remcycles = (remaining / idiff) + 1
-                    return prev[1] + remcycles * hdiff - 1
+                    return prev[1] + remcycles * hdiff
                 }
             }
             seen[key] = [r, Int64(maxheight + 1)]
