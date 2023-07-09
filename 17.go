@@ -6,40 +6,36 @@ import (
 	"os"
 )
 
-var shapes = [][]string{
-	{"####"},
-	{".#.", "###", ".#."},
-	{"..#", "..#", "###"},
-	{"#", "#", "#", "#"},
-	{"##", "##"},
-}
-var jets string
-var dx = map[byte]int{'<': -1, '>': 1}
-var seen = map[string]state{}
-var njet = 0
-
 type pos struct{ x, y int64 }
+type key struct {
+	ijet, irock int
+	depths      [7]int
+}
 
-func max(a, b int64) int64 {
-	if a > b {
-		return a
+var (
+	shapes = [][]string{
+		{"####"},
+		{".#.", "###", ".#."},
+		{"..#", "..#", "###"},
+		{"#", "#", "#", "#"},
+		{"##", "##"},
 	}
-	return b
-}
+	dx = map[byte]int{'<': -1, '>': 1}
+)
 
-type state struct {
-	iter   int64
-	height int64
-}
+var (
+	states    map[key]struct{ rocks, height int64 }
+	stones    map[pos]bool
+	jets      string
+	ijet      int
+	maxheight int64
+)
 
-var stones = make(map[pos]bool)
-
-func drop(r int64, hstones int64, h int64, threshold int64) (int64, int64, int64) {
-	rock := shapes[r%int64(len(shapes))]
-	pp := pos{hstones + 3 + int64(len(rock)), 2}
+func drop(rock []string) {
+	pp := pos{maxheight + 3 + int64(len(rock)), 2}
 	for {
-		ch := jets[njet%len(jets)]
-		njet++
+		ch := jets[ijet%len(jets)]
+		ijet++
 		dy := dx[ch]
 		hitStone := false
 		for x, row := range rock {
@@ -55,7 +51,7 @@ func drop(r int64, hstones int64, h int64, threshold int64) (int64, int64, int64
 		}
 		if (dy > 0 && pp.y+int64(len(rock[0])) < 7 ||
 			dy < 0 && pp.y > 0) && !hitStone {
-			ch := jets[(njet-1)%len(jets)]
+			ch := jets[(ijet-1)%len(jets)]
 			dy := dx[ch]
 			pp.y += int64(dy)
 		}
@@ -83,47 +79,47 @@ func drop(r int64, hstones int64, h int64, threshold int64) (int64, int64, int64
 		}
 		pp.x--
 	}
-	prevh := hstones
 	for x, row := range rock {
 		for y, ch := range row {
 			if ch == '#' {
 				_pp := pos{pp.x - int64(x), int64(y) + pp.y}
 				stones[_pp] = true
-				hstones = max(hstones, _pp.x)
+				maxheight = max(maxheight, _pp.x)
 			}
 		}
 	}
-	if r > 3000 && r < 10000 {
-		key := ""
-		for x := hstones; x > hstones-100; x-- {
-			for y := 0; y < 7; y++ {
-				if stones[pos{x, int64(y)}] {
-					key = key + "#"
-				} else {
-					key = key + "."
-				}
-			}
-		}
-		if prev, ok := seen[key]; ok {
-			idiff := r - prev.iter
-			remaining := threshold - r
-			hdiff := hstones - prev.height
-			cycles := remaining / idiff
-			seen = map[string]state{}
-			return r + 1 + (cycles+1)*idiff, hstones, h + cycles*hdiff + (hstones - prevh)
-		} else {
-			seen[key] = state{r, hstones}
-		}
-	}
-	return r + 1, hstones, h + (hstones - prevh)
 }
 
 func height(threshold int64) int64 {
-	r, hstones, h := int64(0), int64(-1), int64(0)
-	for r < threshold {
-		r, hstones, h = drop(r, hstones, h, threshold)
+	maxheight = int64(-1)
+	skipRocks, skipHeight := int64(0), int64(0)
+	states = make(map[key]struct{ rocks, height int64 })
+	stones = make(map[pos]bool)
+	ijet = 0
+	for r := int64(0); r+skipRocks < threshold; r++ {
+		drop(shapes[r%int64(len(shapes))])
+		depths := [7]int{-100, -100, -100, -100, -100, -100, -100}
+		for y := 0; y < 7; y++ {
+			for x := 0; x > -100; x-- {
+				if stones[pos{maxheight + int64(x), int64(y)}] {
+					depths[y] = x
+					break
+				}
+			}
+		}
+		k := key{ijet % len(jets), int(r % int64(len(shapes))), depths}
+		if prev, ok := states[k]; ok {
+			idiff := r - prev.rocks
+			remaining := threshold - r
+			hdiff := maxheight - prev.height
+			cycles := remaining / idiff
+			states = make(map[key]struct{ rocks, height int64 })
+			skipRocks, skipHeight = cycles*idiff, cycles*hdiff
+		} else {
+			states[k] = struct{ rocks, height int64 }{r, maxheight}
+		}
 	}
-	return h
+	return maxheight + 1 + skipHeight
 }
 
 func main() {
@@ -131,4 +127,11 @@ func main() {
 	scanner.Scan()
 	jets = scanner.Text()
 	fmt.Println(height(2022), height(1000000000000))
+}
+
+func max(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
 }
