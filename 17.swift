@@ -2,24 +2,34 @@ import Foundation
 
 let shapes: [[String]] = [
     ["####"],
-    [".#.", "###", ".#."],
-    ["..#", "..#", "###"],
-    ["#", "#", "#", "#"],
-    ["##", "##"]
+    [".#.",
+     "###",
+     ".#."],
+    ["..#",
+     "..#",
+     "###"],
+    ["#",
+     "#",
+     "#",
+     "#"],
+    ["##",
+     "##"]
 ]
 let jets = readLine() ?? ""
-let dx: [Character: Int] = ["<": -1, ">": 1]
-var tops: [String: [Int64]] = [:]
-var maxheight: Int = 0
-var njet: Int = 0
-var stones = Set<Pos>()
+let directions: [Character: Int] = ["<": -1, ">": 1]
 
+struct Key: Hashable { var ijet, irock: Int; var depths: [Int] }
 struct Pos: Hashable { var x, y: Int }
+
+var states: [Key: [Int64]] = [:]
+var maxheight = 0
+var ijet = 0
+var stones = Set<Pos>()
 
 func overlap(_ rock: [String], _ pp: Pos) -> Bool {
     for x in 0..<rock.count {
         for (y, c) in rock[x].enumerated() {
-            if c == "#" && stones.contains(Pos(x: pp.x - x - 1, y: y + pp.y)) {
+            if c == "#" && stones.contains(Pos(x: pp.x - x, y: y + pp.y)) {
                 return true
             }
         }
@@ -28,23 +38,28 @@ func overlap(_ rock: [String], _ pp: Pos) -> Bool {
 }
 
 func drop(_ rock: [String]) {
-    var pp = Pos(x: maxheight + 3 + rock[0].count, y: 2)
+    var pp = Pos(x: maxheight + 3 + rock.count, y: 2)
     repeat {
-        let jet = jets[jets.index(jets.startIndex, offsetBy: njet % jets.count)]
-        njet += 1
-        let dy = dx[jet]!
+        let jet = jets[jets.index(jets.startIndex, offsetBy: ijet % jets.count)]
+        ijet += 1
+        let dy = directions[jet]!
         if (dy > 0 && pp.y + rock[0].count < 7 || dy < 0 && pp.y > 0) &&
-            !overlap(rock, Pos(x: pp.x - 1, y: pp.y + dy)) {
-            let jet = jets[jets.index(jets.startIndex, offsetBy: (njet - 1) % jets.count)]
-            pp.y += dx[jet]!
+            !overlap(rock, Pos(x: pp.x, y: pp.y + dy)) {
+            pp.y += dy
+        }
+        if pp.x == 0 { break }
+        if rock.count - pp.x - 1 == 0 { break }
+        if overlap(rock, Pos(x: pp.x - 1, y: pp.y)) {
+            pp.x += 1
+            break
         }
         pp.x -= 1
-    } while (pp.x > 0) && (rock.count - pp.x - 1 > 0) && !overlap(rock, pp)
+    } while (true)
     for x in 0..<rock.count {
         for (y, char) in rock[x].enumerated() {
             if char == "#" {
                 stones.insert(Pos(x: pp.x - x, y: y + pp.y))
-                maxheight = max(maxheight, pp.x - x)
+                maxheight = max(maxheight, pp.x)
             }
         }
     }
@@ -52,30 +67,30 @@ func drop(_ rock: [String]) {
 
 func height(_ threshold: Int64) -> Int64 {
     maxheight = -1
-    for r in 0..<threshold {
+    states.removeAll()
+    ijet = 0
+    stones.removeAll()
+    var r = Int64(), skipRocks = Int64(), skipHeight = Int64()
+    while r + skipRocks < threshold {
         drop(shapes[Int(r % Int64(shapes.count))])
-        if maxheight > 100 {
-            var key = ""
+        var depths = [-100, -100, -100, -100, -100, -100, -100]
+        for y in 0..<7 {
             for x in stride(from: maxheight, to: maxheight - 100, by: -1) {
-                for y in 0..<7 {
-                    key.append(stones.contains(Pos(x: x, y: y)) ? "#" : ".")
-                }
+                if (stones.contains(Pos(x: x, y: y))) { depths[y] = x }
             }
-            if let prev = tops[key] {
-                print("cycle found at", r, "length", r - prev[0])
-                let idiff = r - prev[0]
-                let remaining = threshold - r
-                if remaining % idiff == 0 {
-                    let height = Int64(maxheight + 1)
-                    let hdiff = height - prev[1]
-                    let remcycles = (remaining / idiff) + 1
-                    return prev[1] + remcycles * hdiff
-                }
-            }
-            tops[key] = [r, Int64(maxheight + 1)]
         }
+        let k = Key(ijet: ijet % jets.count, irock: Int(r % Int64(shapes.count)), depths: depths)
+        if let prev = states[k] {
+            let idiff = r - prev[0]
+            let remaining = threshold - r
+            let remcycles = remaining / idiff
+            skipRocks = remcycles * idiff
+            skipHeight = remcycles * (prev[1] - Int64(maxheight))
+            states.removeAll()
+        }
+        states[k] = [r, Int64(maxheight + 1)]
+        r += 1
     }
-    return Int64(maxheight + 1)
+    return Int64(maxheight) + 1 + skipHeight
 }
-
 print(height(2022), height(1000000000000))

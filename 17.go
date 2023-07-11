@@ -41,8 +41,7 @@ func drop(rock []string) {
 		for x, row := range rock {
 			for y, ch := range row {
 				if ch == '#' {
-					pp := pos{pp.x - int64(x), int64(y) + pp.y + int64(dy)}
-					if stones[pp] {
+					if stones[pos{pp.x - int64(x), int64(y) + pp.y + int64(dy)}] {
 						hitStone = true
 						break
 					}
@@ -51,8 +50,6 @@ func drop(rock []string) {
 		}
 		if (dy > 0 && pp.y+int64(len(rock[0])) < 7 ||
 			dy < 0 && pp.y > 0) && !hitStone {
-			ch := jets[(ijet-1)%len(jets)]
-			dy := dx[ch]
 			pp.y += int64(dy)
 		}
 		if pp.x == 0 {
