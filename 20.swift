@@ -5,12 +5,7 @@ func mix(_ input: [Int], _ indices: [Int], _ multiplicator: Int) -> ([Int], [Int
     var ind = Array(indices)
     for i in 0..<file.count {
         var from = 0
-        while from < ind.count {
-            if ind[from] == i {
-                break
-            }
-            from += 1
-        }
+        while from < ind.count && ind[from] != i { from += 1 }
         var to = from + (file[from] * multiplicator) % (file.count - 1)
         while to <= 0 { to += file.count - 1 }
         while to >= file.count { to -= file.count - 1 }
@@ -22,9 +17,11 @@ func mix(_ input: [Int], _ indices: [Int], _ multiplicator: Int) -> ([Int], [Int
                 ind[i] = ind[i + 1]
             }
         } else if to != from {
-            for i in (to + 1)...from {
-                file[i] = file[i - 1]
-                ind[i] = ind[i - 1]
+            var j = from
+            while j > to {
+                file[j] = file[j - 1]
+                ind[j] = ind[j - 1]
+                j -= 1
             }
         }
         file[to] = n

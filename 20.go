@@ -7,13 +7,6 @@ import (
 	"strconv"
 )
 
-func abs(a int64) int64 {
-	if a < 0 {
-		return -a
-	}
-	return a
-}
-
 func mix(input []int, indices []int, multiplicator int) ([]int, []int) {
 	file := make([]int, len(input))
 	copy(file, input)
