@@ -1,26 +1,27 @@
 import Foundation
 
-struct Point: Hashable {
-    var x, y: Int
-}
+struct Point: Hashable { var x, y: Int }
 
 var walls = Set<Point>()
 var tiles = Set<Point>()
-var rows = 0
 var size = 50
 
 func bounds(x: Int, y: Int) -> (Int, Int, Int, Int) {
     var left = 10000, right = 0, top = 10000, bottom = 0
     for p in walls {
         if p.y == y || p.x == x {
-            left, top = min(left, p.x), min(top, p.y)
-            right, bottom = max(right, p.x), max(bottom, p.y)
+            left = min(left, p.x)
+            top = min(top, p.y)
+            right = max(right, p.x)
+            bottom = max(bottom, p.y)
         }
     }
     for p in tiles {
         if p.y == y || p.x == x {
-            left, top = min(left, p.x), min(top, p.y)
-            right, bottom = max(right, p.x), max(bottom, p.y)
+            left = min(left, p.x)
+            top = min(top, p.y)
+            right = max(right, p.x)
+            bottom = max(bottom, p.y)
         }
     }
     return (left, right, top, bottom)
@@ -144,10 +145,18 @@ func password(commands: String, step: () -> Void) -> Int {
         case "R":
             let d = Point(x: state.dx, y: state.dy)
             switch d {
-            case Point(x: 1, y: 0): state.dx, state.dy = 0, 1
-            case Point(x: 0, y: 1): state.dx, state.dy = -1, 0
-            case Point(x: -1, y: 0): state.dx, state.dy = 0, -1
-            case Point(x: 0, y: -1): state.dx, state.dy = 1, 0
+            case Point(x: 1, y: 0):
+                state.dx = 0
+                state.dy = 1
+            case Point(x: 0, y: 1):
+                state.dx = -1
+                state.dy = 0
+            case Point(x: -1, y: 0):
+                state.dx = 0
+                state.dy = -1
+            case Point(x: 0, y: -1):
+                state.dx = 1
+                state.dy = 0
             default: fatalError("wrong direction")
             }
         case "L":
@@ -185,14 +194,15 @@ func password(commands: String, step: () -> Void) -> Int {
 }
 
 var line = readLine()!
+var row = 0
 while !line.isEmpty {
     for (x, c) in line.enumerated() {
-        if c == "#" { walls.insert(Point(x: x, y: rows)) }
-        if c == "." { tiles.insert(Point(x: x, y: rows)) }
+        if c == "#" { walls.insert(Point(x: x, y: row)) }
+        if c == "." { tiles.insert(Point(x: x, y: row)) }
     }
-    rows += 1
+    row += 1
     line = readLine()!
 }
-if rows == 12 { size = 4 }
+if row == 12 { size = 4 }
 line = readLine()!
 print(password(commands: line, step: step1), password(commands: line, step: step2))
