@@ -1,37 +1,39 @@
 import Foundation
 
-struct Point: Hashable { var x, y: Int }
-
 var walls = Set<Point>()
 var tiles = Set<Point>()
 var size = 50
 
-func bounds(x: Int, y: Int) -> (Int, Int, Int, Int) {
-    var left = 10000, right = 0, top = 10000, bottom = 0
-    for p in walls {
-        if p.y == y || p.x == x {
-            left = min(left, p.x)
-            top = min(top, p.y)
-            right = max(right, p.x)
-            bottom = max(bottom, p.y)
+struct Point: Hashable {
+    var x, y: Int
+
+    func bounds() -> (Int, Int, Int, Int) {
+        var left = 10000, right = 0, top = 10000, bottom = 0
+        for p in walls {
+            if p.y == y || p.x == x {
+                left = min(left, p.x)
+                top = min(top, p.y)
+                right = max(right, p.x)
+                bottom = max(bottom, p.y)
+            }
         }
-    }
-    for p in tiles {
-        if p.y == y || p.x == x {
-            left = min(left, p.x)
-            top = min(top, p.y)
-            right = max(right, p.x)
-            bottom = max(bottom, p.y)
+        for p in tiles {
+            if p.y == y || p.x == x {
+                left = min(left, p.x)
+                top = min(top, p.y)
+                right = max(right, p.x)
+                bottom = max(bottom, p.y)
+            }
         }
+        return (left, right, top, bottom)
     }
-    return (left, right, top, bottom)
 }
 
 var state = (pos: Point(x: 0, y: 0), dx: 0, dy: 0)
 
 func step1() {
     var np = Point(x: state.pos.x + state.dx, y: state.pos.y + state.dy)
-    let (left, right, top, bottom) = bounds(x: state.pos.x, y: state.pos.y)
+    let (left, right, top, bottom) = state.pos.bounds()
     if np.x < left   { np.x = right }
     if np.x > right  { np.x = left }
     if np.y < top    { np.y = bottom }
@@ -45,7 +47,7 @@ func step1() {
 }
 
 func step2() {
-    let (left, right, top, bottom) = bounds(x: state.pos.x, y: state.pos.y)
+    let (left, right, top, bottom) = state.pos.bounds()
     var np = Point(x: state.pos.x + state.dx, y: state.pos.y + state.dy)
     var nd = Point(x: state.dx, y: state.dy)
     if np.x < left {
@@ -133,7 +135,7 @@ func step2() {
 }
 
 func password(commands: String, step: () -> Void) -> Int {
-    let l = bounds(x: 50, y: 0).0
+    let l = Point(x: 50, y: 0).bounds().0
     state.pos = Point(x: l, y: 0)
     state.dx = 1
     state.dy = 0
