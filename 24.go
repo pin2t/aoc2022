@@ -44,11 +44,11 @@ type state struct {
 }
 
 func (s state) move(to pos) state {
-	var nextStage = s.stage
+	var next = s.stage
 	if s.pos.x == 0 && s.stage == UP || s.pos.x == bottomright.x && s.stage == DOWN {
-		nextStage++
+		next++
 	}
-	return state{to, s.time + 1, nextStage}
+	return state{to, s.time + 1, next}
 }
 
 func (s state) canMove(direction pos) bool {
@@ -67,23 +67,19 @@ func main() {
 		for y, c := range scanner.Text() {
 			if c == '#' {
 				walls[pos{x, y}] = true
-			} else if _, ok := directions[c]; ok {
-				blizzards[pos{x, y}] = directions[c]
+			} else if d, ok := directions[c]; ok {
+				blizzards[pos{x, y}] = d
 			}
 			bottomright = bottomright.max(pos{x, y})
 		}
 	}
 	queue := make([]state, 1000000)
 	queue = append(queue, state{pos{0, 1}, 0, 0})
-	processed := make(map[state]bool, 1000)
-	n1, maxtime := 0, 0
+	processed := make(map[state]bool, 10000000)
+	n1 := 0
 	for {
 		s := queue[0]
 		queue = queue[1:]
-		if s.time > maxtime {
-			processed = make(map[state]bool, 1000)
-			maxtime = s.time
-		}
 		if processed[s] {
 			continue
 		}
