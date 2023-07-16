@@ -29,36 +29,55 @@ func (p pos) move(delta pos) pos {
 	return pos{p.x + delta.x, p.y + delta.y}
 }
 
+var walls = map[pos]bool{}
+var bottomright = pos{0, 0}
+
+const (
+	DOWN  = 0
+	UP    = 1
+	DOWN2 = 2
+)
+
 type state struct {
 	pos         pos
-	time, stage int // 0 - down, 1 - up, 2 - down again
+	time, stage int
 }
 
 func (s state) move(to pos) state {
-	return state{to, s.time + 1, s.stage}
+	var nextStage = s.stage
+	if s.pos.x == 0 && s.stage == UP || s.pos.x == bottomright.x && s.stage == DOWN {
+		nextStage++
+	}
+	return state{to, s.time + 1, nextStage}
+}
+
+func (s state) canMove(direction pos) bool {
+	to := s.pos.move(direction)
+	if walls[to] || to.x < 0 || to.x > bottomright.x || to.y < 0 || to.y > bottomright.y {
+		return false
+	}
+	return true
 }
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	grid := map[pos]rune{}
 	blizzards := map[pos]pos{}
-	bottomright := pos{0, 0}
 	directions := map[rune]pos{'<': {0, -1}, '>': {0, 1}, '^': {-1, 0}, 'v': {1, 0}}
 	for x := 0; scanner.Scan(); x++ {
 		for y, c := range scanner.Text() {
-			grid[pos{x, y}] = c
-			bottomright = bottomright.max(pos{x, y})
-			if c != '#' && c != '.' {
+			if c == '#' {
+				walls[pos{x, y}] = true
+			} else if _, ok := directions[c]; ok {
 				blizzards[pos{x, y}] = directions[c]
 			}
+			bottomright = bottomright.max(pos{x, y})
 		}
 	}
 	queue := make([]state, 1000000)
 	queue = append(queue, state{pos{0, 1}, 0, 0})
 	processed := make(map[state]bool, 1000)
-	n1, maxtime, step := 0, 0, 0
+	n1, maxtime := 0, 0
 	for {
-		step++
 		s := queue[0]
 		queue = queue[1:]
 		if s.time > maxtime {
@@ -88,30 +107,19 @@ func main() {
 		if stopped {
 			continue
 		}
-		if s.pos.x == 0 && s.stage == 1 {
-			s.stage++
-		}
 		if s.pos.x == bottomright.x {
-			if s.stage == 0 {
-				if n1 == 0 {
-					n1 = s.time
-				}
-				s.stage = 1
+			if n1 == 0 {
+				n1 = s.time
 			}
-			if s.stage > 1 {
+			if s.stage == DOWN2 {
 				fmt.Println(n1, s.time)
 				return
 			}
 		}
 		for _, d := range directions {
-			to := s.pos.move(d)
-			if grid[to] == '#' {
-				continue
+			if s.canMove(d) {
+				queue = append(queue, s.move(s.pos.move(d)))
 			}
-			if _, ok := grid[to]; !ok {
-				continue
-			}
-			queue = append(queue, s.move(to))
 		}
 		queue = append(queue, s.move(s.pos))
 	}
