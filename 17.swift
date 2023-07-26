@@ -49,7 +49,6 @@ func drop(_ rock: [String]) {
         }
         pp.x -= 1
     } while (pp.x > 0 && rock.count - pp.x > 0 && !overlap(rock, pp))
-    print(pp)
     for x in 0..<rock.count {
         for (y, char) in rock[x].enumerated() {
             if char == "#" {
@@ -88,5 +87,4 @@ func height(_ threshold: Int64) -> Int64 {
     }
     return Int64(maxheight) + 1 + skipHeight
 }
-print(height(2))
-//print(height(2022), height(1000000000000))
+print(height(2022), height(1000000000000))

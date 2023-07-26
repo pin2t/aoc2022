@@ -75,7 +75,6 @@ func drop(rock []string) {
 		}
 		pp.x--
 	}
-	fmt.Println(pp)
 	for x, row := range rock {
 		for y, ch := range row {
 			if ch == '#' {
@@ -123,8 +122,7 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	jets = scanner.Text()
-	fmt.Println(height(2))
-	//	fmt.Println(height(2022), height(1000000000000))
+	fmt.Println(height(2022), height(1000000000000))
 }
 
 func max(a, b int64) int64 {
