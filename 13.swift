@@ -4,13 +4,13 @@ var n = 0, i = 1, prev2 = 1, prev6 = 2
 while let line = readLine() {
     let packet1 = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [Any]
     let packet2 = try JSONSerialization.jsonObject(with: Data(readLine()!.utf8)) as? [Any]
-    readLine()
-    if compare(packet1, packet2) < 0 { n += i }
+    _ = readLine()
+    if compare(packet1 as Any, packet2 as Any) < 0 { n += i }
     i += 1
-    if compare(packet1, [[2]]) < 0 { prev2 += 1 }
-    if compare(packet2, [[2]]) < 0 { prev2 += 1 }
-    if compare(packet1, [[6]]) < 0 { prev6 += 1 }
-    if compare(packet2, [[6]]) < 0 { prev6 += 1 }
+    if compare(packet1 as Any, [[2]]) < 0 { prev2 += 1 }
+    if compare(packet2 as Any, [[2]]) < 0 { prev2 += 1 }
+    if compare(packet1 as Any, [[6]]) < 0 { prev6 += 1 }
+    if compare(packet2 as Any, [[6]]) < 0 { prev6 += 1 }
 }
 print(n, prev2 * prev6)
 
