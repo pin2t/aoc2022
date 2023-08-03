@@ -20,23 +20,26 @@ var (
 		{"#", "#", "#", "#"},
 		{"##", "##"},
 	}
-	dx = map[byte]int{'<': -1, '>': 1}
+	directions = map[byte]int{'<': -1, '>': 1}
+	states     map[key]struct{ rocks, height int64 }
+	stones     map[pos]bool
+	jets       string
+	ijet       int
+	maxheight  int64
 )
 
-var (
-	states    map[key]struct{ rocks, height int64 }
-	stones    map[pos]bool
-	jets      string
-	ijet      int
-	maxheight int64
-)
+func main() {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	jets = scanner.Text()
+	fmt.Println(height(2022), height(1000000000000))
+}
 
 func drop(rock []string) {
 	pp := pos{maxheight + 3 + int64(len(rock)), 2}
 	for {
-		ch := jets[ijet%len(jets)]
+		dy := directions[jets[ijet%len(jets)]]
 		ijet++
-		dy := dx[ch]
 		hitStone := false
 		for x, row := range rock {
 			for y, ch := range row {
@@ -116,13 +119,6 @@ func height(threshold int64) int64 {
 		}
 	}
 	return maxheight + 1 + skipHeight
-}
-
-func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	jets = scanner.Text()
-	fmt.Println(height(2022), height(1000000000000))
 }
 
 func max(a, b int64) int64 {

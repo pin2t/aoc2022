@@ -71,7 +71,7 @@ func height(_ threshold: Int64) -> Int64 {
         for y in 0..<7 {
             for x in stride(from: maxheight, to: maxheight - 100, by: -1) {
                 if (stones.contains(Pos(x: x, y: y))) {
-                    depths[y] = x
+                    depths[y] = min(depths[y], maxheight - x)
                 }
             }
         }
