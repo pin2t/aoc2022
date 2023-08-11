@@ -78,13 +78,13 @@ func main() {
 			n2 = i + 1
 			break
 		}
-		for e, _ := range elves {
+		for e := range elves {
 			moved[e] = true
 		}
 		elves = moved
 		if i == 9 {
 			var topleft, bottomright = pos{1000000, 1000000}, pos{-1000000, -1000000}
-			for e, _ := range elves {
+			for e := range elves {
 				topleft.x, topleft.y, bottomright.x, bottomright.y = min(topleft.x, e.x), min(topleft.y, e.y), max(bottomright.x, e.x), max(bottomright.y, e.y)
 			}
 			n1 = (bottomright.x-topleft.x+1)*(bottomright.y-topleft.y+1) - len(elves)
