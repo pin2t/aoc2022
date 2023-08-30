@@ -69,7 +69,7 @@ func (s sensor) merge(coverage []interval, targety int) []interval {
 				if _, found := skip[i]; found {
 					continue
 				}
-				var intersect bool = false
+				var intersect = false
 				for j := i + 1; j < len(result); j++ {
 					if result[i].intersect(result[j]) {
 						merged = append(merged, result[i].merge(result[j]))

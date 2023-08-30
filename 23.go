@@ -83,11 +83,11 @@ func main() {
 		}
 		elves = moved
 		if i == 9 {
-			var topleft, bottomright = pos{1000000, 1000000}, pos{-1000000, -1000000}
+			top, left, bottom, right := 1000000, 1000000, -1000000, -1000000
 			for e := range elves {
-				topleft.x, topleft.y, bottomright.x, bottomright.y = min(topleft.x, e.x), min(topleft.y, e.y), max(bottomright.x, e.x), max(bottomright.y, e.y)
+				top, left, bottom, right = min(top, e.x), min(left, e.y), max(bottom, e.x), max(right, e.y)
 			}
-			n1 = (bottomright.x-topleft.x+1)*(bottomright.y-topleft.y+1) - len(elves)
+			n1 = (bottom-top+1)*(right-left+1) - len(elves)
 		}
 	}
 	fmt.Println(n1, n2)
