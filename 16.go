@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"sync"
 )
 
 func max(a, b int) int {
@@ -64,7 +65,7 @@ func pressure(initial state, forbidden vset) int {
 		if !s.opened.contains(s.valve) && !forbidden.contains(s.valve) && flow[s.valve] > 0 {
 			queue = append(queue, s.open())
 		}
-		for to, _ := range flow {
+		for to := range flow {
 			if to != s.valve && !forbidden.contains(to) && tunnels.contains(s.valve*26*26+to) {
 				queue = append(queue, state{to, s.opened, s.timeLeft - 1, s.pressure})
 			}
@@ -120,14 +121,24 @@ func main() {
 	}
 	n1 := pressure(state{0, vset{}, 30, 0}, vset{})
 	n2 := 0
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
 	for _, first := range powerset(nonempty) {
-		second := vset{}
-		for v, f := range flow {
-			if !first.contains(v) && f > 0 {
-				second[v] = true
+		wg.Add(1)
+		go func(first vset, n2 *int) {
+			defer wg.Done()
+			second := vset{}
+			for v, f := range flow {
+				if !first.contains(v) && f > 0 {
+					second[v] = true
+				}
 			}
-		}
-		n2 = max(n2, pressure(state{0, vset{}, 26, 0}, first)+pressure(state{0, vset{}, 26, 0}, second))
+			n := pressure(state{0, vset{}, 26, 0}, first) + pressure(state{0, vset{}, 26, 0}, second)
+			mutex.Lock()
+			defer mutex.Unlock()
+			*n2 = max(*n2, n)
+		}(first, &n2)
 	}
+	wg.Wait()
 	fmt.Println(n1, n2)
 }
