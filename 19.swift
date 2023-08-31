@@ -33,27 +33,28 @@ struct State: Hashable {
 }
 
 func maxgeodes(_ bp: Blueprint, _ minutes: Int, _ maxlen: Int) -> Int {
-    var m = 0, maxmin = 0
+    var m = 0, maxmin = 0, i = 0
     var processed = Set<State>()
     var queue = [State(0,
         Items(ore: 0, clay: 0, obsidian: 0, geode: 0),
         Items(ore: 1, clay: 0, obsidian: 0, geode: 0))]
-
-    while !queue.isEmpty {
-        if queue.first!.minute > maxmin {
-            maxmin = queue.first!.minute
-            processed = Set<State>()
-            if queue.count > maxlen {
-                queue.sort { $0.val() > $1.val() }
-                queue.removeLast(queue.count - maxlen)
-                print("cutting queue, fist", queue.first!.minute, queue.first!.val())
-                continue
-            }
-        }
-        let s = queue.removeFirst()
+    while !queue.isEmpty && i < queue.count {
+        let s = queue[i]
+        i += 1
         if s.minute == minutes {
             m = max(m, s.values.geode)
             continue
+        }
+        if s.minute > maxmin {
+            maxmin = s.minute
+            processed.removeAll()
+            if queue.count > maxlen {
+                queue.removeFirst(max(i - 1, 0))
+                i = 0
+                queue.sort { $0.val() > $1.val() }
+                queue.removeLast(max(queue.count - maxlen, 0))
+                continue
+            }
         }
         if processed.contains(s) {
             continue
@@ -90,17 +91,15 @@ while let line = readLine() {
     let n = line.numbers
     blueprints.append(Blueprint(n: n[0], ore: n[1], clay: n[2], obsidian: (n[3], n[4]), geode: (n[5], n[6])))
 }
-var n1 = 0
+var part1 = 0
 for bp in blueprints {
-    n1 += bp.n * maxgeodes(bp, 24, 2000000)
-    print(n1, bp.n)
+    part1 += bp.n * maxgeodes(bp, 24, 2000000)
 }
-var prod = 1
+var part2 = 1
 for bp in blueprints.prefix(3) {
-    prod *= maxgeodes(bp, 32, 2000000)
-    print(prod, bp.n)
+    part2 *= maxgeodes(bp, 32, 2000000)
 }
-print(n1, prod)
+print(part1, part2)
 
 extension String {
     var numbers: [Int] {
