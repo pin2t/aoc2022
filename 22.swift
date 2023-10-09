@@ -1,210 +1,201 @@
 import Foundation
 
-var walls = Set<Point>()
-var tiles = Set<Point>()
-var size = 50
+enum FieldItem {
+    case tile, wall
+}
+
+var field: [Point: FieldItem] = [:]
 
 struct Point: Hashable {
     var x, y: Int
 
     func bounds() -> (Int, Int, Int, Int) {
         var left = 10000, right = 0, top = 10000, bottom = 0
-        for p in walls {
-            if p.y == y || p.x == x {
-                left = min(left, p.x)
-                top = min(top, p.y)
-                right = max(right, p.x)
-                bottom = max(bottom, p.y)
-            }
-        }
-        for p in tiles {
-            if p.y == y || p.x == x {
-                left = min(left, p.x)
-                top = min(top, p.y)
-                right = max(right, p.x)
-                bottom = max(bottom, p.y)
+        for (point, _) in field {
+            if point.y == y || point.x == x {
+                (left, right) = (min(left, point.x), max(right, point.x))
+                (top, bottom) = (min(top, point.y), max(bottom, point.y))
             }
         }
         return (left, right, top, bottom)
     }
+
+    func move(_ direction: Direction) -> Point {
+        return Point(x: x + direction.dx, y: y + direction.dy)
+    }
 }
 
-var state = (pos: Point(x: 0, y: 0), dx: 0, dy: 0)
+struct Direction: Equatable {
+    static let up    = Direction(dx: 0,  dy: -1)
+    static let down  = Direction(dx: 0,  dy: 1)
+    static let left  = Direction(dx: -1, dy: 0)
+    static let right = Direction(dx: 1,  dy: 0)
 
-func step1() {
-    var np = Point(x: state.pos.x + state.dx, y: state.pos.y + state.dy)
-    let (left, right, top, bottom) = state.pos.bounds()
-    if np.x < left   { np.x = right }
-    if np.x > right  { np.x = left }
-    if np.y < top    { np.y = bottom }
-    if np.y > bottom { np.y = top }
-    if walls.contains(np) { return }
-    if tiles.contains(np) {
-        state.pos = np
-        return
+    var dx, dy: Int
+
+    func left() -> Direction {
+        switch self {
+        case .up:    return .left
+        case .down:  return .right
+        case .left:  return .down
+        case .right: return .up
+        default: fatalError("wrong direction")
+        }
     }
-    fatalError("wrong position \(state)")
+
+    func right() -> Direction {
+        switch self {
+        case .up:    return .right
+        case .down:  return .left
+        case .left:  return .up
+        case .right: return .down
+        default: fatalError("wrong direction")
+        }
+    }
 }
 
-func step2() {
-    let (left, right, top, bottom) = state.pos.bounds()
-    var np = Point(x: state.pos.x + state.dx, y: state.pos.y + state.dy)
-    var nd = Point(x: state.dx, y: state.dy)
-    if np.x < left {
-        if state.pos.x == 0 {
-            if state.pos.y < 3 * size {
-                np = Point(x: size, y: size - state.pos.y)
-                nd = Point(x: 0, y: 1)
-            } else {
-                np = Point(x: 4 * size - 1, y: state.pos.y - 2 * size)
-                nd = Point(x: -1, y: 0)
-            }
-        }
-        if state.pos.x == size {
-            np = Point(x: 0, y: 3 * size - state.pos.y)
-            nd = Point(x: 0, y: 1)
-        }
-        if state.pos.x == 2 * size {
-            np = Point(x: state.pos.y + size, y: size - 1)
-            nd = Point(x: 0, y: 1)
-        }
+
+class State {
+    var pos: Point
+    var direction: Direction
+
+    init() {
+        let left = Point(x: 50, y: 0).bounds().0
+        pos = Point(x: left, y: 0)
+        direction = Direction.right
     }
-    if np.x > right {
-        if state.pos.x == size - 1 {
-            np = Point(x: state.pos.y - size, y: 2 * size - 1)
-            nd = Point(x: 0, y: -1)
+
+    func step() {
+        var next = pos.move(direction)
+        let (left, right, top, bottom) = pos.bounds()
+        if next.x < left   { next.x = right }
+        if next.x > right  { next.x = left }
+        if next.y < top    { next.y = bottom }
+        if next.y > bottom { next.y = top }
+        if let item = field[next] {
+            if item == .tile { pos = next }
+            return
         }
-        if state.pos.x == 3 * size - 1 {
-            np = Point(x: 4 * size - (state.pos.y - size) - 1, y: 2 * size)
-            nd = Point(x: 0, y: 1)
-        }
-        if state.pos.x == 4 * size - 1 {
-            np = Point(x: 0, y: state.pos.y + 2 * size)
-            nd = Point(x: 1, y: 0)
-        }
+        fatalError("wrong position \(pos) direction \(direction)")
     }
-    if np.y < top {
-        if state.pos.y == size {
-            if state.pos.x < size {
-                np = Point(x: size - state.pos.x, y: 0)
-                nd = Point(x: 0, y: 1)
-            } else {
-                np = Point(x: 2 * size, y: state.pos.x - size)
-                nd = Point(x: 1, y: 0)
-            }
-        }
-        if state.pos.y == 0 {
-            if state.pos.x < size * 3 - 1 {
-                np = Point(x: size - (state.pos.x - 2 * size), y: size - 1)
-                nd = Point(x: 0, y: 1)
-            } else {
-                np = Point(x: 0, y: state.pos.x - 2 * size)
-                nd = Point(x: 0, y: 1)
-            }
-        }
+
+    func left() {
+        direction = direction.left()
     }
-    if np.y > bottom {
-        if state.pos.y == 3 * size - 1 {
-            np = Point(x: 3 * size - 1 - state.pos.x, y: 2 * size - 1)
-            nd = Point(x: 0, y: -1)
-        }
-        if state.pos.y == 2 * size - 1 {
-            if state.pos.x < 2 * size {
-                np = Point(x: size - 1, y: state.pos.x + size)
-                nd = Point(x: -1, y: 0)
-            } else {
-                np = Point(x: size - (state.pos.x - 2 * size), y: 3 * size - 1)
-                nd = Point(x: 0, y: -1)
-            }
-        }
-        if state.pos.y == size - 1 {
-            np = Point(x: 3 * size - 1, y: size + (state.pos.x - 3 * size))
-            nd = Point(x: -1, y: 0)
-        }
+
+    func right() {
+        direction = direction.right()
     }
-    if walls.contains(np) {
-        return
+
+    func password() -> Int {
+        var face = 0
+        switch direction {
+        case .right: face = 0
+        case .down:  face = 1
+        case .left:  face = 2
+        case .up:    face = 3
+        default: fatalError("wrong direction")
+        }
+        return (pos.y + 1) * 1000 + (pos.x + 1) * 4 + face
     }
-    if tiles.contains(np) {
-        state.pos = np
-        state.dx = nd.x
-        state.dy = nd.y
-        return
-    }
-    fatalError("wrong position \(np) state \(state)")
 }
 
-func password(commands: String, step: () -> Void) -> Int {
-    let l = Point(x: 50, y: 0).bounds().0
-    state.pos = Point(x: l, y: 0)
-    state.dx = 1
-    state.dy = 0
+class CubicState: State {
+    override init() {
+        super.init()
+    }
+
+    override func step() {
+        var next = pos.move(direction)
+        var ndir = Direction.up
+        switch direction {
+        case .down:
+            if pos.y == 49 {
+                if next.x >= 100 && next.x < 150 {
+                    (next, ndir) = (Point(x: 99, y: pos.x - 50), .left)
+                }
+            } else if pos.y == 149 {
+                if next.x >= 50 && next.x < 100 {
+                    (next, ndir) = (Point(x: 49, y: next.x + 100), .left)
+                }
+            } else if next.y >= 200 && next.x >= 0 && next.x < 50 {
+                (next, ndir) = (Point(x: next.x + 100, y: 0), .down)
+            }
+        case .up:
+            if pos.y == 0 {
+                if next.x >= 50 && next.x < 100 {
+                    (next, ndir) = (Point(x: 0, y: next.x + 100), .right)
+                } else if next.x >= 100 && next.x < 150 {
+                    (next, ndir) = (Point(x: next.x - 100, y: 199), .up)
+                }
+            } else if pos.y == 100 {
+                if next.x >= 0 && next.x < 50 {
+                    (next, ndir) = (Point(x: 50, y: next.x + 50), .right)
+                }
+            }
+        case .right:
+            if next.x >= 150 && next.y >= 0 && next.y < 50 {
+                (next, ndir) = (Point(x: 99, y: 149 - next.y), .left)
+            } else if pos.x == 49 {
+                if next.y >= 150 && next.y < 200 {
+                    (next, ndir) = (Point(x: next.y - 100, y: 149), .up)
+                }
+            } else if pos.x == 99 {
+                if next.y >= 50 && next.y < 100 {
+                    (next, ndir) = (Point(x: next.y + 50, y: 49), .up)
+                } else if next.y >= 100 && next.y < 150 {
+                    (next, ndir) = (Point(x: 149, y: 149 - next.y), .left)
+                }
+            }
+        case .left:
+            if next.x < 0 && next.y >= 150 && next.y < 200 {
+                (next, ndir) = (Point(x: next.y - 100, y: 0), .down)
+            } else if next.x == 49 && next.y >= 50 && next.y < 100 {
+                (next, ndir) = (Point(x: next.y - 50, y: 100), .down)
+            } else if next.x == 49 && next.y >= 0 && next.y < 50 {
+                (next, ndir) = (Point(x: 0, y: 149 - next.y), .right)
+            } else if next.x < 0 && next.y >= 100 && next.y < 150 {
+                (next, ndir) = (Point(x: 50, y: 149 - next.y), .right)
+            }
+        default: fatalError("Unknown dorection \(direction)")
+        }
+        if let item = field[next] {
+            if item == .tile {
+                pos = next
+                direction = ndir
+            }
+            return
+        }
+        fatalError("wrong next position \(next), current position \(pos) direction \(direction)")
+    }
+}
+
+func password(state: State, commands: String) -> Int {
     let re = try! NSRegularExpression(pattern: "L|R|[0-9]+")
     let matches = re.matches(in: commands, range: NSRange(commands.startIndex..., in: commands))
     for match in matches {
         let cmd = String(commands[Range(match.range, in: commands)!])
         switch cmd {
-        case "R":
-            let d = Point(x: state.dx, y: state.dy)
-            switch d {
-            case Point(x: 1, y: 0):
-                state.dx = 0
-                state.dy = 1
-            case Point(x: 0, y: 1):
-                state.dx = -1
-                state.dy = 0
-            case Point(x: -1, y: 0):
-                state.dx = 0
-                state.dy = -1
-            case Point(x: 0, y: -1):
-                state.dx = 1
-                state.dy = 0
-            default: fatalError("wrong direction")
-            }
-        case "L":
-            let d = Point(x: state.dx, y: state.dy)
-            switch d {
-            case Point(x: 1, y: 0):
-                state.dx = 0
-                state.dy = -1
-            case Point(x: 0, y: 1):
-                state.dx = 1
-                state.dy = 0
-            case Point(x: -1, y: 0):
-                state.dx = 0
-                state.dy = 1
-            case Point(x: 0, y: -1):
-                state.dx = -1
-                state.dy = 0
-            default: fatalError("wrong direction")
-            }
+        case "R": state.right()
+        case "L": state.left()
         default:
             let n = Int(cmd)!
-            for _ in 0..<n { step() }
+            for _ in 0..<n { state.step() }
         }
     }
-    let d = Point(x: state.dx, y: state.dy)
-    var face = 0
-    switch d {
-    case Point(x: 1, y: 0): face = 0
-    case Point(x: 0, y: 1): face = 1
-    case Point(x: -1, y: 0): face = 2
-    case Point(x: 0, y: -1): face = 3
-    default: fatalError("wrong direction")
-    }
-    return (state.pos.y + 1) * 1000 + (state.pos.x + 1) * 4 + face
+    return state.password()
 }
 
 var line = readLine()!
 var row = 0
 while !line.isEmpty {
-    for (x, c) in line.enumerated() {
-        if c == "#" { walls.insert(Point(x: x, y: row)) }
-        if c == "." { tiles.insert(Point(x: x, y: row)) }
+    for (col, ch) in line.enumerated() {
+        if ch == "#" { field[Point(x: col, y: row)] = .wall }
+        if ch == "." { field[Point(x: col, y: row)] = .tile }
     }
     row += 1
     line = readLine()!
 }
-if row == 12 { size = 4 }
 line = readLine()!
-print(password(commands: line, step: step1), password(commands: line, step: step2))
+print(password(state: State(), commands: line), password(state: CubicState(), commands: line))
+
