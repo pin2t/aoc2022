@@ -38,7 +38,7 @@ while true {
         }
     }
     var npropositions = [Pos:Int]()
-    for (from, to) in propositions {
+    for (_, to) in propositions {
         npropositions[to] = (npropositions[to] ?? 0) + 1
     }
     var moved = 0
